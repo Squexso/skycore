@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "skycore",
+  "version": "${version}",
+  "name": "SKYCORE",
+  "description": "Premium Hypixel SkyBlock progression & analytics overlay.",
+  "authors": ["squxso"],
+  "license": "All-Rights-Reserved",
+  "icon": "assets/skycore/icon.png",
+  "environment": "client",
+  "entrypoints": { "client": ["dev.skycore.SkycoreClient"] },
+  "depends": { "fabricloader": ">=0.19.0", "minecraft": "~26.1", "fabric-api": "*", "java": ">=25" }
+}

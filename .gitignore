@@ -1,0 +1,30 @@
+# Interne Dateien: bleiben lokal, werden nicht veroeffentlicht
+README.md
+CLAUDE.md
+.claude/
+*.local.md
+
+# Build, Caches, Testlaeufe
+build/
+.gradle/
+.kotlin/
+out/
+bin/
+run/
+logs/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Betriebssystem
+.DS_Store
+Thumbs.db
+
+# Zugangsdaten und lokale Konfiguration (nie einchecken)
+*.env
+.env*
+*.key
+*.pem
+local.properties

@@ -1,0 +1,50 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version '1.19-SNAPSHOT'
+}
+
+version = project.mod_version
+group = project.maven_group
+base { archivesName = project.archives_base_name }
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.11.4"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") { expand "version": project.version }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.encoding = "UTF-8"
+}
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(25) }
+}
+
+loom {
+    runs {
+        // Dev-only visual check: opens every SKYCORE page with sample data, screenshots it, quits.
+        capture {
+            client()
+            name = "SKYCORE Capture"
+            runDir = "run"
+            vmArg "-Dskycore.capture=true"
+            vmArg "-Dskycore.capture.lang=" + (project.findProperty("captureLang") ?: "en")
+            vmArg "-Dskycore.capture.expand=" + (project.findProperty("captureExpand") ?: "true")
+            vmArg "-Dskycore.capture.tag=" + (project.findProperty("captureTag") ?: "")
+            vmArg "-Dskycore.stress=" + (project.findProperty("captureStress") ?: "false")
+            vmArg "-Dskycore.capture.only=" + (project.findProperty("captureOnly") ?: "")
+            programArgs "--width", (project.findProperty("captureWidth") ?: "1600").toString(), "--height", (project.findProperty("captureHeight") ?: "900").toString()
+        }
+    }
+}
