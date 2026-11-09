@@ -16,14 +16,13 @@ public final class Community {
     /** "Party > [MVP+] Name: !skycore" - only the party prefix of the game counts, never All Chat or private messages. */
     private static final Pattern PARTY = Pattern.compile("^Party > (?:\\[[^\\]\\s]{1,16}\\] ?)*([A-Za-z0-9_]{1,16}): (.*)$");
 
-    /** The sender if the line is exactly "!skycore" in Party chat from someone other than the local player, else null. */
+    /** The sender if the line is exactly "!skycore" (any capitalisation) in Party chat, from anyone including the local player, else null. */
     public static String requester(String plainLine, String localName) {
         if (plainLine == null) return null;
         Matcher m = PARTY.matcher(plainLine);
         if (!m.matches()) return null;
         String name = m.group(1);
-        if (!TRIGGER.equals(m.group(2))) return null;
-        if (localName != null && name.equalsIgnoreCase(localName)) return null;
+        if (!TRIGGER.equalsIgnoreCase(m.group(2))) return null;
         return name;
     }
 

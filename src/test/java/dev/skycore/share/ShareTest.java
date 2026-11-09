@@ -338,7 +338,8 @@ class ShareTest {
         assertNull(Community.requester("Guild > Alex: !skycore", "Me"));
         assertNull(Community.requester("From [MVP+] Alex: !skycore", "Me"), "private message");
         assertNull(Community.requester("To Alex: !skycore", "Me"));
-        assertNull(Community.requester("Party > Alex: !SKYCORE", "Me"), "exact match");
+        assertEquals("Alex", Community.requester("Party > Alex: !Skycore", "Me"), "capitalisation does not matter");
+        assertEquals("Alex", Community.requester("Party > Alex: !SKYCORE", "Me"));
         assertNull(Community.requester("Party > Alex: !skycore please", "Me"));
         assertNull(Community.requester("Party > Alex:  !skycore", "Me"));
         assertNull(Community.requester("Party > Alex: hello !skycore", "Me"));
@@ -347,9 +348,9 @@ class ShareTest {
     }
 
     @Test
-    void ownMessagesAreIgnored() {
-        assertNull(Community.requester("Party > Me: !skycore", "Me"));
-        assertNull(Community.requester("Party > [VIP] me: !skycore", "Me"), "case-insensitive name");
+    void ownMessagesCountToo() {
+        assertEquals("Me", Community.requester("Party > Me: !skycore", "Me"));
+        assertEquals("me", Community.requester("Party > [VIP] me: !Skycore", "Me"));
     }
 
     @Test
@@ -374,8 +375,9 @@ class ShareTest {
         assertNotNull(Community.handle(s, st, "Party > A: !skycore", "Me", t, DEF));
         assertNull(Community.handle(s, st, "Party > B: !skycore", "Me", t + 59_000, DEF), "inside the cooldown");
         assertNotNull(Community.handle(s, st, "Party > B: !skycore", "Me", t + 60_000, DEF), "after the cooldown");
-        assertNull(Community.handle(s, st, "Party > Me: !skycore", "Me", t + 500_000, DEF));
+        assertNull(Community.handle(s, st, "Party > Me: hello", "Me", t + 500_000, DEF));
         assertEquals(t + 60_000, st.lastCommunity, "ignored messages do not start a cooldown");
+        assertNotNull(Community.handle(s, st, "Party > Me: !skycore", "Me", t + 500_000, DEF), "own request works too");
     }
 
     @Test

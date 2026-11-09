@@ -1299,7 +1299,7 @@
   "share.section.community": "Community request",
   "share.section.community_desc": "Optional: prepare a reply when someone asks for SKYCORE in party chat",
   "share.com.enabled": "React to !skycore in Party chat",
-  "share.com.enabled_desc": "Only the exact message !skycore in Party chat from another player. Nothing is sent automatically.",
+  "share.com.enabled_desc": "The message !skycore (any capitalization) in Party chat, from anyone including you. Nothing is sent automatically.",
   "share.com.url": "Installation link",
   "share.com.url_placeholder": "https://...",
   "share.com.cooldown": "Cooldown",
