@@ -494,6 +494,9 @@ public class SharePage implements Page {
             boolean en = ui.toggleRow("sh#com", new Rect(sec.x() - 8, cy, sec.w() + 8, 30), Lang.t("share.com.enabled"), Lang.t("share.com.enabled_desc"), c.enabled);
             if (en != c.enabled) { c.enabled = en; changed(); }
             cy += 36;
+            boolean as = ui.toggleRow("sh#comauto", new Rect(sec.x() - 8, cy, sec.w() + 8, 30), Lang.t("share.com.autosend"), Lang.t("share.com.autosend_desc"), c.autoSend);
+            if (as != c.autoSend) { c.autoSend = as; changed(); }
+            cy += 36;
             g.text(Lang.t("share.com.url"), sec.x(), cy + 5, t.text(), 1f, Weight.MEDIUM);
             boolean valid = c.installUrl.isEmpty() || Community.validUrl(c.installUrl);
             String nu = ui.textField("sh#comurl", new Rect(sec.x() + 150, cy, sec.w() - 150, 22), c.installUrl, Lang.t("share.com.url_placeholder"), 200, ch -> ch > 32, valid);
@@ -517,7 +520,7 @@ public class SharePage implements Page {
                 for (String l : g.wrap(resp, sec.w() - 16, 1f)) { g.text(l, sec.x() + 8, cy, t.text(), 1f); cy += 11; }
                 cy += 4;
             }
-            for (String l : g.wrap(Lang.t("share.com.note"), sec.w(), 0.85f)) { g.text(l, sec.x(), cy, t.textMute(), 0.85f); cy += 10; }
+            for (String l : g.wrap(Lang.t(c.autoSend ? "share.com.note_auto" : "share.com.note"), sec.w(), 0.85f)) { g.text(l, sec.x(), cy, t.textMute(), 0.85f); cy += 10; }
         }
         return ui.endSection(sec, cy);
     }

@@ -401,6 +401,15 @@ public final class ShareService implements Progress.Listener {
         state.add(p);
         dirty = true;
         if (s.autoCopy) inbox.copy(p, Destination.PARTY);
+        if (s.community.autoSend && !p.text.isBlank() && !p.text.startsWith("/") && !p.text.equalsIgnoreCase(Community.TRIGGER)) {
+            var mc = Minecraft.getInstance();
+            if (mc.player != null && mc.player.connection != null) {
+                String text = p.text.length() > 256 ? p.text.substring(0, 256) : p.text;
+                mc.player.connection.sendCommand("pc " + text);
+                if (s.showToast) Notifier.push(null, Lang.t("share.community.sent", p.title), text, Icon.CHECK, cyan(Theme.get()));
+                return;
+            }
+        }
         if (s.showToast) Notifier.push(null, Lang.t("share.community.toast", p.title), Lang.t(s.autoCopy ? "share.toast.copied" : "share.toast.hint"), Icon.GLOBE, cyan(Theme.get()));
     }
 

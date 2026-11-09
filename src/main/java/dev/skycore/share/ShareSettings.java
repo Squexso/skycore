@@ -87,6 +87,8 @@ public class ShareSettings {
         /** Never filled in by the mod. */
         public String installUrl = "";
         public int cooldownSeconds = 60;
+        /** Off by default: when on, the prepared reply is sent to Party chat right away (the player's explicit choice). */
+        public boolean autoSend = false;
         /** "" = default text. Placeholder: {install_url}. */
         public String response = "";
     }
