@@ -1,5 +1,4 @@
 # Interne Dateien: bleiben lokal, werden nicht veroeffentlicht
-README.md
 CLAUDE.md
 .claude/
 *.local.md
