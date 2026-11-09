@@ -97,7 +97,6 @@ public final class Skycore {
 
         copyShareKey = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.skycore.copy_share", InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), cat));
         ClientReceiveMessageEvents.GAME.register(HypixelTracker::onGameMessage);
-        ClientReceiveMessageEvents.GAME.register(dev.skycore.share.ShareService::onGameMessage);
         ClientTickEvents.END_CLIENT_TICK.register(Skycore::tick);
         ClientLifecycleEvents.CLIENT_STOPPING.register(mc -> {
             HypixelTracker.shutdown();

@@ -6,7 +6,7 @@ import java.util.UUID;
 public class Prepared {
     public String id = UUID.randomUUID().toString();
     public long created = System.currentTimeMillis();
-    /** Routing category ("catacombs", "goal_checkpoint", "community" ...). */
+    /** Routing category ("catacombs", "goal_checkpoint" ...). */
     public String category = "";
     public String kind = "completed";
     public String stat = "";

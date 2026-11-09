@@ -319,98 +319,6 @@ class ShareTest {
         assertNull(Destination.parse("pm", null));
     }
 
-    // ------------------------------------------------------------------ community
-    private static ShareSettings community() {
-        ShareSettings s = settings();
-        s.community.enabled = true;
-        s.community.installUrl = "https://example.org/skycore";
-        return s;
-    }
-
-    private static final String DEF = "Interested in SKYCORE? Here's the installation guide: {install_url}";
-
-    @Test
-    void onlyTheExactTriggerInPartyChatIsRecognized() {
-        assertEquals("Alex", Community.requester("Party > Alex: !skycore", "Me"));
-        assertEquals("Alex", Community.requester("Party > [MVP+] Alex: !skycore", "Me"));
-        assertEquals("Alex", Community.requester("Party > [MVP++] [GOD] Alex: !skycore", "Me"));
-        assertNull(Community.requester("[MVP+] Alex: !skycore", "Me"), "All Chat");
-        assertNull(Community.requester("Guild > Alex: !skycore", "Me"));
-        assertNull(Community.requester("From [MVP+] Alex: !skycore", "Me"), "private message");
-        assertNull(Community.requester("To Alex: !skycore", "Me"));
-        assertEquals("Alex", Community.requester("Party > Alex: !Skycore", "Me"), "capitalisation does not matter");
-        assertEquals("Alex", Community.requester("Party > Alex: !SKYCORE", "Me"));
-        assertNull(Community.requester("Party > Alex: !skycore please", "Me"));
-        assertNull(Community.requester("Party > Alex:  !skycore", "Me"));
-        assertNull(Community.requester("Party > Alex: hello !skycore", "Me"));
-        assertNull(Community.requester("[MVP+] A: Party > Alex: !skycore", "Me"), "a spoof typed into another channel does not count");
-        assertNull(Community.requester(null, "Me"));
-    }
-
-    @Test
-    void ownMessagesCountToo() {
-        assertEquals("Me", Community.requester("Party > Me: !skycore", "Me"));
-        assertEquals("me", Community.requester("Party > [VIP] me: !Skycore", "Me"));
-    }
-
-    @Test
-    void aValidRequestPreparesAResponseWithTheConfiguredLinkOnly() {
-        ShareSettings s = community();
-        ShareState st = new ShareState();
-        Prepared p = Community.handle(s, st, "Party > Alex: !skycore", "Me", 1_000_000L, DEF);
-        assertNotNull(p);
-        assertEquals("Interested in SKYCORE? Here's the installation guide: https://example.org/skycore", p.text);
-        assertEquals(Destination.PARTY, p.destination());
-        assertEquals("/pc " + p.text, p.clipboardText(Destination.PARTY));
-        s.community.response = "Get it here: {install_url}";
-        assertEquals("Get it here: https://example.org/skycore", Community.response(s, DEF));
-    }
-
-    @Test
-    void cooldownPreventsSpam() {
-        ShareSettings s = community();
-        s.community.cooldownSeconds = 60;
-        ShareState st = new ShareState();
-        long t = 10_000_000L;
-        assertNotNull(Community.handle(s, st, "Party > A: !skycore", "Me", t, DEF));
-        assertNull(Community.handle(s, st, "Party > B: !skycore", "Me", t + 59_000, DEF), "inside the cooldown");
-        assertNotNull(Community.handle(s, st, "Party > B: !skycore", "Me", t + 60_000, DEF), "after the cooldown");
-        assertNull(Community.handle(s, st, "Party > Me: hello", "Me", t + 500_000, DEF));
-        assertEquals(t + 60_000, st.lastCommunity, "ignored messages do not start a cooldown");
-        assertNotNull(Community.handle(s, st, "Party > Me: !skycore", "Me", t + 500_000, DEF), "own request works too");
-    }
-
-    @Test
-    void theFeatureStaysInactiveWithoutEnableOrUrl() {
-        ShareState st = new ShareState();
-        ShareSettings off = community();
-        off.community.enabled = false;
-        assertNull(Community.handle(off, st, "Party > A: !skycore", "Me", 1L, DEF), "disabled");
-        ShareSettings noUrl = community();
-        noUrl.community.installUrl = "";
-        assertFalse(Community.active(noUrl));
-        assertNull(Community.handle(noUrl, st, "Party > A: !skycore", "Me", 1L, DEF), "empty URL");
-        noUrl.community.installUrl = "   ";
-        assertNull(Community.handle(noUrl, st, "Party > A: !skycore", "Me", 1L, DEF));
-        assertEquals(0, st.lastCommunity);
-    }
-
-    @Test
-    void theInstallUrlIsEmptyByDefaultAndValidated() {
-        ShareSettings fresh = new ShareSettings();
-        assertEquals("", fresh.community.installUrl, "never hardcoded");
-        assertFalse(fresh.community.enabled);
-        assertTrue(Community.validUrl("https://example.org/a/b?x=1"));
-        assertTrue(Community.validUrl("http://example.org"));
-        assertFalse(Community.validUrl(""));
-        assertFalse(Community.validUrl("example.org"));
-        assertFalse(Community.validUrl("javascript:alert(1)"));
-        assertFalse(Community.validUrl("https://exa mple.org"));
-        assertFalse(Community.validUrl("https://localhost"), "needs a real host name");
-        assertFalse(Community.validUrl("https://example.org/" + "a".repeat(200)));
-        assertFalse(Community.active(fresh));
-    }
-
     // ------------------------------------------------------------------ settings and shipped texts
     @Test
     void existingConfigsWithoutShareSettingsKeepWorking() {
@@ -459,11 +367,8 @@ class ShareTest {
                 assertTrue(n >= 3, kind + " needs at least 3 default variations");
             }
         }
-        for (String k : new String[]{"share.dest.party", "share.dest.all", "share.dest.clipboard", "share.dest.manual", "share.community.default"})
+        for (String k : new String[]{"share.dest.party", "share.dest.all", "share.dest.clipboard", "share.dest.manual"})
             assertTrue(en.has(k) && de.has(k));
-        assertTrue(en.get("share.community.default").getAsString().contains("{install_url}"));
-        assertFalse(en.get("share.community.default").getAsString().contains("http"), "no URL is hardcoded");
-        assertFalse(de.get("share.community.default").getAsString().contains("http"));
         for (String k : en.keySet()) if (k.startsWith("share.")) assertFalse(en.get(k).getAsString().toLowerCase().contains("github"), k);
         for (int cat = 0; cat < ShareSettings.CATEGORIES.length; cat++) assertTrue(en.has("share.cat." + ShareSettings.CATEGORIES[cat]));
     }

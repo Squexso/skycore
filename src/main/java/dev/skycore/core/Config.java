@@ -27,7 +27,7 @@ public class Config {
     public WindowState window = new WindowState();
     public ThemeSettings theme = new ThemeSettings();
     public NotificationSettings notifications = new NotificationSettings();
-    /** Milestone sharing (prepared messages, routing, templates, community request). */
+    /** Milestone sharing (prepared messages, routing, templates). */
     public dev.skycore.share.ShareSettings share = new dev.skycore.share.ShareSettings();
     public Map<String, Boolean> tracking = new LinkedHashMap<>();
     public List<CardState> overview = new ArrayList<>();

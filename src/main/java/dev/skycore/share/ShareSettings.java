@@ -53,7 +53,6 @@ public class ShareSettings {
     /** Signature appended to messages of categories that enabled it. */
     public String signature = SIGNATURE_PRESETS[0];
 
-    public CommunitySettings community = new CommunitySettings();
 
     public static class Category {
         public boolean enabled = true;
@@ -79,18 +78,6 @@ public class ShareSettings {
             this.stat = stat == null ? "" : stat;
             this.destination = destination;
         }
-    }
-
-    public static class CommunitySettings {
-        /** Inactive until the user enables it and supplies a valid link. */
-        public boolean enabled = false;
-        /** Never filled in by the mod. */
-        public String installUrl = "";
-        public int cooldownSeconds = 60;
-        /** Off by default: when on, the prepared reply is sent to Party chat right away (the player's explicit choice). */
-        public boolean autoSend = false;
-        /** "" = default text. Placeholder: {install_url}. */
-        public String response = "";
     }
 
     public static Destination defaultDestination(String category) {
@@ -131,10 +118,6 @@ public class ShareSettings {
         collectionMinLevel = Math.max(1, collectionMinLevel);
         if (templates == null) templates = new LinkedHashMap<>();
         if (signature == null) signature = SIGNATURE_PRESETS[0];
-        if (community == null) community = new CommunitySettings();
-        if (community.installUrl == null) community.installUrl = "";
-        if (community.response == null) community.response = "";
-        community.cooldownSeconds = Math.max(5, Math.min(3600, community.cooldownSeconds));
     }
 
     /** Sorted, distinct, in range. A list the user emptied on purpose stays empty; only a null list gets the defaults. */

@@ -5,7 +5,6 @@ import dev.skycore.core.Skycore;
 import dev.skycore.data.DataStatus;
 import dev.skycore.data.Progress;
 import dev.skycore.data.StatDef;
-import dev.skycore.share.Community;
 import dev.skycore.share.Destination;
 import dev.skycore.share.Inbox;
 import dev.skycore.share.Kind;
@@ -33,7 +32,7 @@ import java.util.Random;
 
 /**
  * Milestone sharing: prepared messages, routing, milestones, checkpoints, template editor, signature, clipboard
- * and the optional community request. Everything here only prepares text; the player sends it themselves.
+ * Everything here only prepares text; the player sends it themselves.
  */
 public class SharePage implements Page {
     @Override public String id() { return "share"; }
@@ -63,7 +62,6 @@ public class SharePage implements Page {
         y = templates(ui, area, y, s);
         y = signature(ui, area, y, s);
         y = clipboard(ui, area, y, s);
-        y = community(ui, area, y, s);
         ui.g.alpha = prev;
         return y - area.y();
     }
@@ -84,7 +82,7 @@ public class SharePage implements Page {
     private static int accentFor(Theme t, String kind) {
         return switch (kind) {
             case "completed", "major" -> t.progress();       // gold: achievements
-            case "nearly", "checkpoint", "report", "community" -> ShareService.cyan(t); // cyan: progress updates
+            case "nearly", "checkpoint", "report" -> ShareService.cyan(t); // cyan: progress updates
             default -> ShareService.cyan(t);
         };
     }
@@ -479,48 +477,6 @@ public class SharePage implements Page {
             if (ac != s.autoCopy) { s.autoCopy = ac; changed(); }
             cy += 36;
             for (String l : g.wrap(Lang.t("share.clipboard_note"), sec.w(), 0.85f)) { g.text(l, sec.x(), cy, t.textMute(), 0.85f); cy += 10; }
-        }
-        return ui.endSection(sec, cy);
-    }
-
-    // ------------------------------------------------------------------ community
-    private float community(Ui ui, Rect area, float y, ShareSettings s) {
-        Gfx g = ui.g;
-        Theme t = ui.t;
-        ShareSettings.CommunitySettings c = s.community;
-        Ui.Section sec = ui.beginSection("sh.community", area.x(), y, area.w(), Lang.t("share.section.community"), Lang.t("share.section.community_desc"), Icon.GLOBE, false);
-        float cy = sec.contentY();
-        if (sec.visible()) {
-            boolean en = ui.toggleRow("sh#com", new Rect(sec.x() - 8, cy, sec.w() + 8, 30), Lang.t("share.com.enabled"), Lang.t("share.com.enabled_desc"), c.enabled);
-            if (en != c.enabled) { c.enabled = en; changed(); }
-            cy += 36;
-            boolean as = ui.toggleRow("sh#comauto", new Rect(sec.x() - 8, cy, sec.w() + 8, 30), Lang.t("share.com.autosend"), Lang.t("share.com.autosend_desc"), c.autoSend);
-            if (as != c.autoSend) { c.autoSend = as; changed(); }
-            cy += 36;
-            g.text(Lang.t("share.com.url"), sec.x(), cy + 5, t.text(), 1f, Weight.MEDIUM);
-            boolean valid = c.installUrl.isEmpty() || Community.validUrl(c.installUrl);
-            String nu = ui.textField("sh#comurl", new Rect(sec.x() + 150, cy, sec.w() - 150, 22), c.installUrl, Lang.t("share.com.url_placeholder"), 200, ch -> ch > 32, valid);
-            if (!nu.equals(c.installUrl)) { c.installUrl = nu.trim(); changed(); }
-            cy += 30;
-            g.text(Lang.t("share.com.cooldown"), sec.x(), cy + 5, t.text(), 1f, Weight.MEDIUM);
-            int cd = ui.stepper("sh#comcd", new Rect(sec.x() + 150, cy, 110, 22), c.cooldownSeconds, 5, 3600);
-            g.text(Lang.t("share.com.seconds"), sec.x() + 268, cy + 6, t.textDim(), 0.9f);
-            if (cd != c.cooldownSeconds) { c.cooldownSeconds = cd; changed(); }
-            cy += 30;
-            g.text(Lang.t("share.com.response"), sec.x(), cy + 5, t.text(), 1f, Weight.MEDIUM);
-            String nr = ui.textField("sh#comresp", new Rect(sec.x() + 150, cy, sec.w() - 150, 22), c.response, Lang.t("share.com.response_default"), 200, ch -> ch >= 32);
-            if (!nr.equals(c.response)) { c.response = nr; changed(); }
-            cy += 30;
-            boolean active = Community.active(s);
-            String status = !c.enabled ? "share.com.status_off" : c.installUrl.isBlank() ? "share.com.status_nourl" : !Community.validUrl(c.installUrl) ? "share.com.status_badurl" : "share.com.status_on";
-            g.text(Lang.t(status), sec.x(), cy, active ? t.success() : t.textDim(), 0.95f, Weight.MEDIUM);
-            cy += 16;
-            if (active) {
-                String resp = Community.response(s, Lang.t("share.community.default"));
-                for (String l : g.wrap(resp, sec.w() - 16, 1f)) { g.text(l, sec.x() + 8, cy, t.text(), 1f); cy += 11; }
-                cy += 4;
-            }
-            for (String l : g.wrap(Lang.t(c.autoSend ? "share.com.note_auto" : "share.com.note"), sec.w(), 0.85f)) { g.text(l, sec.x(), cy, t.textMute(), 0.85f); cy += 10; }
         }
         return ui.endSection(sec, cy);
     }

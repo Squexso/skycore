@@ -20,7 +20,6 @@ public class ShareState {
     /** Run total at the last milestone of a category ("profile|catacombs") - for {runs_since}. */
     public Map<String, Integer> runsAtMilestone = new LinkedHashMap<>();
     public List<Prepared> inbox = new ArrayList<>();
-    public long lastCommunity;
 
     public boolean has(String key) { return fired.contains(key); }
 

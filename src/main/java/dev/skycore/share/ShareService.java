@@ -390,29 +390,6 @@ public final class ShareService implements Progress.Listener {
         return p;
     }
 
-    // ------------------------------------------------------------------ community request ("!skycore" in party chat)
-    public static void onGameMessage(Component message, boolean overlay) {
-        if (overlay || !initialised) return;
-        ShareSettings s = settings();
-        if (!s.community.enabled) return; // cheap exit for everyone who does not use the feature
-        String plain = StringUtil.stripColor(message.getString());
-        Prepared p = Community.handle(s, state, plain, player(), System.currentTimeMillis(), Lang.t("share.community.default"));
-        if (p == null) return;
-        state.add(p);
-        dirty = true;
-        if (s.autoCopy) inbox.copy(p, Destination.PARTY);
-        if (s.community.autoSend && !p.text.isBlank() && !p.text.startsWith("/") && !p.text.equalsIgnoreCase(Community.TRIGGER)) {
-            var mc = Minecraft.getInstance();
-            if (mc.player != null && mc.player.connection != null) {
-                String text = p.text.length() > 256 ? p.text.substring(0, 256) : p.text;
-                mc.player.connection.sendCommand("pc " + text);
-                if (s.showToast) Notifier.push(null, Lang.t("share.community.sent", p.title), text, Icon.CHECK, cyan(Theme.get()));
-                return;
-            }
-        }
-        if (s.showToast) Notifier.push(null, Lang.t("share.community.toast", p.title), Lang.t(s.autoCopy ? "share.toast.copied" : "share.toast.hint"), Icon.GLOBE, cyan(Theme.get()));
-    }
-
     // ------------------------------------------------------------------ copy action (button or key)
     /** Copy the newest prepared message for its destination. A deliberate action of the player. */
     public static boolean copyLatest() {

@@ -82,7 +82,7 @@ public final class DevCapture {
                 for (String id : new String[]{"ap.theme", "ap.colors", "ap.type", "ap.effects", "nt.general", "nt.alerts", "nt.look", "nt.sound", "nt.text",
                         "set.general", "set.interface", "set.keys", "set.tracking", "set.hud", "set.data", "set.datatrack", "hud.general", "hud.look", "hud.pos",
                         "set.profiles", "set.backup", "set.integrity", "set.patterns", "set.debug",
-                        "sh.routing", "sh.milestones", "sh.checkpoints", "sh.templates", "sh.signature", "sh.clipboard", "sh.community"})
+                        "sh.routing", "sh.milestones", "sh.checkpoints", "sh.templates", "sh.signature", "sh.clipboard"})
                     Skycore.config().expanded.put(id, true);
             if (Boolean.getBoolean("skycore.capture.expand")) { demoDebugger(); demoShare(); }
             Skycore.setLanguage(LANG);
