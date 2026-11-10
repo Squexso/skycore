@@ -18,6 +18,9 @@ import java.util.regex.Pattern;
 public final class MenuParser {
     private static final Pattern PROGRESS = Pattern.compile("Progress to (?:Level |Tier |Milestone )?(.*?)\\s*([IVXLCDM]+|\\d+): ([\\d.]+)%");
     private static final Pattern FRACTION = Pattern.compile("([\\d,]+(?:\\.\\d+)?[kKmMbB]?)\\s*/\\s*([\\d,]+(?:\\.\\d+)?[kKmMbB]?)");
+    // Heart of the Mountain menu: items "Tier 9" with "Progress: 51.1%" and a "148,100/290k" line while they are the next tier
+    private static final Pattern TIER_ITEM = Pattern.compile("^Tier (\\d{1,2})$");
+    private static final Pattern HOTM_PROGRESS = Pattern.compile("^Progress: ([\\d.]+)%");
     private static final Pattern TRAILING_LEVEL = Pattern.compile("^(.*?)\\s+([IVXLCDM]+|\\d+)$");
     // values shown in specific menus the player opens (unverified formats: matched strictly, otherwise ignored)
     private static final Pattern MUSEUM_DONATED = Pattern.compile("^(?:Items )?Donated: ([\\d,]+)\\s*/\\s*([\\d,]+)");
@@ -42,8 +45,11 @@ public final class MenuParser {
         boolean collectionMenu = title.contains("collection");
         String menu = collectionMenu ? "collection" : title.contains("bestiary") ? "bestiary" : title.contains("garden") || title.contains("desk") ? "garden" : "";
         counters(title, items, out);
+        boolean hotmMenu = title.contains("heart of the mountain");
+        if (hotmMenu) hotm(items, out);
         for (Item it : items) {
             if (it.name() == null || it.lore() == null || it.lore().isEmpty()) continue;
+            if (hotmMenu && TIER_ITEM.matcher(it.name().trim()).matches()) continue; // handled by hotm()
             ParsedEvent e = parseItem(it, collectionMenu);
             if (e instanceof ParsedEvent.MenuProgress m && !menu.equals(m.menu()))
                 e = new ParsedEvent.MenuProgress(m.name(), m.nextLevel(), m.current(), m.need(), m.percent(), m.collectionMenu(), menu);
@@ -177,6 +183,32 @@ public final class MenuParser {
             return new ParsedEvent.MenuProgress(baseName(it.name()), next, cur, need, pct, collectionMenu);
         }
         return null;
+    }
+
+    /**
+     * Heart of the Mountain: the tier being worked towards is the "Tier N" item that shows "Progress: x%" and a
+     * "current/needed" line; the current tier is N - 1. Locked tiers without progress and unlocked tiers are ignored.
+     * Format taken from the real menu (dump of the 26.2 client), matched strictly.
+     */
+    static void hotm(List<Item> items, List<ParsedEvent> out) {
+        for (Item it : items) {
+            if (it.name() == null || it.lore() == null) continue;
+            Matcher t = TIER_ITEM.matcher(it.name().trim());
+            if (!t.matches()) continue;
+            int next = Integer.parseInt(t.group(1));
+            if (next < 2 || next > 10) continue;
+            for (int i = 0; i < it.lore().size(); i++) {
+                Matcher pm = HOTM_PROGRESS.matcher(it.lore().get(i).trim());
+                if (!pm.find()) continue;
+                double pct = Double.parseDouble(pm.group(1)), cur = -1, need = -1;
+                for (int j = i; j < Math.min(it.lore().size(), i + 3); j++) {
+                    Matcher f = FRACTION.matcher(it.lore().get(j).replace(" ", ""));
+                    if (f.find()) { cur = MessageParser.num(f.group(1)); need = MessageParser.num(f.group(2)); break; }
+                }
+                out.add(new ParsedEvent.MenuProgress("Heart of the Mountain", next, cur, need, pct, false));
+                break;
+            }
+        }
     }
 
     /** "Mining XXV" → "Mining", "Catacombs Level 23" → "Catacombs". */
