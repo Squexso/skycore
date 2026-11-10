@@ -27,7 +27,7 @@ public final class SideXp {
     // Every form below was seen in real Hypixel chat logs (counts in brackets): "A Squid appeared." (180), "You caught a Sea Walker."
     // (130), "It looks like you've disrupted the Sea Witch's brewing session..." (111), "You reeled in a Sea Archer." (76),
     // "The Rider of the Deep has emerged." (67), "Huh? A Catfish!" (48), "You've discovered a Guardian Defender of the sea." (14).
-    private static final Pattern CREATURE = Pattern.compile("^(?:"
+    private static final class Holder { static final Pattern P = Pattern.compile("^(?:"
             + "You caught an? [A-Z][^.!]{1,40}\\."
             + "|You reeled in an? [A-Z][^.!]{1,40}\\."
             // "has appeared" is excluded on purpose: "A Spirit Bear has appeared!" is not a sea creature
@@ -49,7 +49,87 @@ public final class SideXp {
             + "|It looks like you've disrupted the Sea Witch's brewing session\\. Watch out, she's furious!"
             + "|The Rider of the Deep has emerged\\."
             + "|(?:DOUBLE HOOK! )?You have angered a legendary creature\\.\\.\\. [^.!]{1,40} has arrived\\."
-            + ")$");
+            + "|" + exactAlternation()
+            + ")$"); }
+
+    /** Complete message texts from a list of SkyBlock sea creature messages (colour codes removed), compared as a whole line. */
+    private static final String[] EXACT = {
+            "A Blue Ringed Octopus emerged from the deep!",
+            "A Blue Shark dashes towards you!",
+            "A Bogged rises from the mud.",
+            "A Catfish!",
+            "A Fiery Scuttler scuttles out of the lava.",
+            "A Fire Eel slithers out of the lava!",
+            "A Fireproof Witch cackles as she rises!",
+            "A Flaming Worm surfaces from the lava!",
+            "A Lava Blaze flies out of the magma!",
+            "A Lava Flame sparks into existence!",
+            "A Lava Leech hitches a ride on your line!",
+            "A Lava Pigman storm out of the lava!",
+            "A Magma Pillar erupts from the depths!",
+            "A Magma Slug crawled out of the lava.",
+            "A Manta Ray swam up to you!",
+            "A massive Titanoboa slithers out of the swamp!",
+            "A Moogma splashes out of the lava.",
+            "A Nightmare lunges out of the water!",
+            "A Nutcracker wants to crack your skull!",
+            "A Plhlegblast oozes out of the magma!",
+            "A Poisoned Water Worm surfaces!",
+            "A Pyroclastic Worm slithers out of the magma!",
+            "A Sea Leech!",
+            "A Snapping Turtle surfaced!",
+            "A Squid appeared.",
+            "A Stridersurfer rides the waves to you!",
+            "A Tadgang hops onto dry land!",
+            "A Tiger Shark is hunting you!",
+            "A tiny fin emerges from the water, you've caught a Nurse Shark...",
+            "A Volcanic Snail crawled out of the lava.",
+            "A Water Worm surfaces!",
+            "A Wetwing flutters into the air.",
+            "An Abyssal Miner strikes from the crystal depths!",
+            "An Ent roots out of the swamp!",
+            "An Inkling appeared.",
+            "An Oasis Rabbit hops out of the water!",
+            "An Oasis Sheep splashed out of the water!",
+            "BrrRrRRr! A Yeti appeared!",
+            "Frosty the Snowman is throwing snowballs!",
+            "Frozen Steve froze for ages, until now!",
+            "Hide your kids, hide your wife, it's a Great White Shark!",
+            "It looks like you've disrupted the Sea Witch's brewing session. Watch out, she's furious!",
+            "It must be a full moon, it's a Werewolf!",
+            "It's only a scarecrow.",
+            "It's the Carrot King!",
+            "Pitch Darkness reveals a Night Squid.",
+            "The ancient terror of the Crimson Isle, Lord Jawbus, has broken free!",
+            "The elusive Nessie surfaces to greet you!",
+            "The end of days is here! Ragnarok has awoken!",
+            "The Grinch tries to steal your Christmas!",
+            "The ground shakes as Thunder strikes from the magma!",
+            "The legendary Loch Emperor makes his grand entrance!",
+            "The mighty Taurus charges out of the lava!",
+            "The Phantom Fisher arises!",
+            "The Rider of the Deep has emerged.",
+            "The Sea Emperor arises from the depths.",
+            "The sky darkens... The Reindrake has flown into battle!",
+            "The water bubbles and froths. A massive form emerges- you have disturbed the Wiki Tiki! You shall pay the price.",
+            "The Water Hydra has surfaced!",
+            "This can't be happening, the Grim Reaper is here!",
+            "You caught a Sea Walker.",
+            "You fished up some gooey Bayou Sludge.",
+            "You fished up... Fried Chicken?",
+            "You have awoken the Deep Sea Protector, prepare for a battle!",
+            "You reeled in a Frog Man.",
+            "You reeled in a Sea Archer.",
+            "You stumbled upon a Sea Guardian.",
+            "Your Chumcap Bucket trembles, it's an Agarimoo.",
+            "You've discovered a Guardian Defender of the sea."
+    };
+
+    private static String exactAlternation() {
+        StringBuilder b = new StringBuilder();
+        for (String m : EXACT) { if (b.length() > 0) b.append('|'); b.append(Pattern.quote(m)); }
+        return b.toString();
+    }
 
     private static final long XP_LINK_MS = 6_000L;
     private static final long HOST_WINDOW_MS = 120_000L;
@@ -86,7 +166,7 @@ public final class SideXp {
     /** True if a chat line (colors stripped) announces a caught sea creature. */
     public static boolean isCreatureLine(String text) {
         if (text == null) return false;
-        Matcher m = CREATURE.matcher(text.trim());
+        Matcher m = Holder.P.matcher(text.trim());
         return m.matches();
     }
 

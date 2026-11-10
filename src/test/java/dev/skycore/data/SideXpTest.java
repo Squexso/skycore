@@ -30,6 +30,15 @@ class SideXpTest {
                 "Thunder appeared!", "Lord Jawbus has awakened!", "A Water Worm surfaces!", "A Poisoned Water Worm surfaces!",
                 "An Abyssal Miner appeared."};
         for (String line : fromList) assertTrue(SideXp.isCreatureLine(line), line);
+        // the second, complete list
+        String[] list2 = {"Pitch Darkness reveals a Night Squid.", "You stumbled upon a Sea Guardian.", "A Catfish!", "It's the Carrot King!",
+                "Your Chumcap Bucket trembles, it's an Agarimoo.", "You have awoken the Deep Sea Protector, prepare for a battle!",
+                "The Water Hydra has surfaced!", "The Sea Emperor arises from the depths.", "An Oasis Rabbit hops out of the water!",
+                "A Lava Blaze flies out of the magma!", "The mighty Taurus charges out of the lava!",
+                "The ancient terror of the Crimson Isle, Lord Jawbus, has broken free!", "You fished up... Fried Chicken?",
+                "BrrRrRRr! A Yeti appeared!", "Hide your kids, hide your wife, it's a Great White Shark!",
+                "The end of days is here! Ragnarok has awoken!", "The elusive Nessie surfaces to greet you!"};
+        for (String line : list2) assertTrue(SideXp.isCreatureLine(line), line);
     }
 
     @Test
