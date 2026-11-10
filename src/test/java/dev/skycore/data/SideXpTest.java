@@ -12,6 +12,12 @@ class SideXpTest {
         assertTrue(SideXp.isCreatureLine("You have angered a legendary creature... Lord Jawbus has arrived."));
         assertTrue(SideXp.isCreatureLine("DOUBLE HOOK! You have angered a legendary creature... Lord Jawbus has arrived."));
         assertTrue(SideXp.isCreatureLine("  You caught an Oasis Rabbit.  "));
+        // the other forms from real logs
+        assertTrue(SideXp.isCreatureLine("A Squid appeared."));
+        assertTrue(SideXp.isCreatureLine("Huh? A Catfish!"));
+        assertTrue(SideXp.isCreatureLine("You've discovered a Guardian Defender of the sea."));
+        assertTrue(SideXp.isCreatureLine("It looks like you've disrupted the Sea Witch's brewing session. Watch out, she's furious!"));
+        assertTrue(SideXp.isCreatureLine("The Rider of the Deep has emerged."));
     }
 
     @Test
@@ -22,6 +28,12 @@ class SideXpTest {
         assertFalse(SideXp.isCreatureLine("[MVP+] Rod_S: DOUBLE HOOK! You have angered a legendary creature... Lord Jawbus has arrived."));
         assertFalse(SideXp.isCreatureLine("[VIP] Steve: You caught a Sea Walker."));
         assertFalse(SideXp.isCreatureLine(null));
+        // lines from real logs that look similar but are not sea creatures
+        assertFalse(SideXp.isCreatureLine("A Spirit Bear has appeared!"));
+        assertFalse(SideXp.isCreatureLine("HOPPITY'S HUNT A Chocolate Lunch Egg has appeared!"));
+        assertFalse(SideXp.isCreatureLine("SLAYER MINIBOSS! The Sven Alpha spawned!"));
+        assertFalse(SideXp.isCreatureLine("You can't use Worm Baits outside of Crystal Hollows."));
+        assertFalse(SideXp.isCreatureLine("Your Plasmaflux Power Orb despawned."));
     }
 
     @Test

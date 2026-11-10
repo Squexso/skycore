@@ -24,8 +24,19 @@ public final class SideXp {
     public record Counter(int count, double xp) {}
 
     // Anchored at the start of the line: item catches ("GOOD CATCH! You caught ...") and player chat ("[MVP] name: ...") never match.
-    private static final Pattern CREATURE = Pattern.compile(
-            "^(?:You caught an? [A-Z][^.!]{1,40}\\.|You reeled in an? [A-Z][^.!]{1,40}\\.|(?:DOUBLE HOOK! )?You have angered a legendary creature\\.\\.\\. [^.!]{1,40} has arrived\\.)$");
+    // Every form below was seen in real Hypixel chat logs (counts in brackets): "A Squid appeared." (180), "You caught a Sea Walker."
+    // (130), "It looks like you've disrupted the Sea Witch's brewing session..." (111), "You reeled in a Sea Archer." (76),
+    // "The Rider of the Deep has emerged." (67), "Huh? A Catfish!" (48), "You've discovered a Guardian Defender of the sea." (14).
+    private static final Pattern CREATURE = Pattern.compile("^(?:"
+            + "You caught an? [A-Z][^.!]{1,40}\\."
+            + "|You reeled in an? [A-Z][^.!]{1,40}\\."
+            + "|An? [A-Z][A-Za-z' -]{1,30} appeared\\."
+            + "|Huh\\? An? [A-Z][A-Za-z' -]{1,30}!"
+            + "|You've discovered an? [A-Z][^.!]{1,40}\\."
+            + "|It looks like you've disrupted the Sea Witch's brewing session\\. Watch out, she's furious!"
+            + "|The Rider of the Deep has emerged\\."
+            + "|(?:DOUBLE HOOK! )?You have angered a legendary creature\\.\\.\\. [^.!]{1,40} has arrived\\."
+            + ")$");
 
     private static final long XP_LINK_MS = 6_000L;
     private static final long HOST_WINDOW_MS = 120_000L;
