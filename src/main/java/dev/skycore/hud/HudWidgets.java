@@ -41,6 +41,7 @@ public final class HudWidgets {
             case "skill" -> Icon.SKILLS;
             case "slayer" -> Icon.SLAYER;
             case "session" -> Icon.CLOCK;
+            case "reputation" -> Icon.SPARK;
             default -> Icon.GOALS;
         };
     }
@@ -52,6 +53,7 @@ public final class HudWidgets {
             case "skill" -> new String[]{"remaining", "rate", "trend", "eta", "creatures"};
             case "slayer" -> new String[]{"remaining", "rate", "eta"};
             case "session" -> new String[]{"time", "xp", "rate", "pace"};
+            case "reputation" -> new String[]{"rep_left", "rep_today", "rep_eta"};
             default -> new String[]{"bars", "eta"};
         };
     }
@@ -136,6 +138,9 @@ public final class HudWidgets {
                 String title = Lang.t(best.nameKey()) + (bp.known() ? " " + bp.level : "");
                 return new Content(title, best.icon(), bp.need > 0 || bp.percent >= 0 ? bp.frac() : -1, Lang.percent(bp.frac()), rows);
             }
+            case "reputation" -> {
+                return reputation(lines, t);
+            }
             case "session" -> {
                 SessionLog.Totals tt = SessionLog.totals(SessionLog.range(SessionLog.Period.TODAY));
                 double h = tt.playMillis() / 3600_000.0;
@@ -180,6 +185,39 @@ public final class HudWidgets {
         }
     }
 
+    /** Crimson Isle reputation box: level bar, reputation left, gained today and the estimate in play days. */
+    private static Content reputation(WidgetLines lines, Theme t) {
+        List<Row> rows = new ArrayList<>();
+        long now = System.currentTimeMillis();
+        String fac = Progress.isSample() ? "Mage" : dev.skycore.data.Reputation.current();
+        if (fac == null) {
+            rows.add(new Row(Lang.t("hud.status"), Lang.t("hud.rep.none"), t.textDim(), -1));
+            return new Content(Lang.t("hud.widget.reputation"), Icon.SPARK, -1, null, rows);
+        }
+        dev.skycore.data.Reputation.Fac f = Progress.isSample() ? sampleRep() : dev.skycore.data.Reputation.get(fac);
+        String title = Lang.t("hud.rep.title." + fac.toLowerCase());
+        if (f == null) return new Content(title, Icon.SPARK, -1, null, rows);
+        long today = Progress.isSample() ? 175 : dev.skycore.data.Reputation.today(fac, now);
+        if (f.known()) {
+            if (lines.on("rep_left")) rows.add(new Row(Lang.t("hud.rep.left"), Lang.num(f.remaining())));
+        } else {
+            rows.add(new Row(Lang.t("hud.status"), Lang.t("hud.rep.unread"), t.textDim(), -1));
+        }
+        if (lines.on("rep_today")) rows.add(new Row(Lang.t("hud.rep.today"), "+" + Lang.num(today), today > 0 ? t.success() : 0, -1));
+        if (lines.on("rep_eta") && f.known()) {
+            dev.skycore.data.Reputation.Eta e = Progress.isSample() ? new dev.skycore.data.Reputation.Eta(2, 2.6, 3.4, 5, 480) : dev.skycore.data.Reputation.eta(fac, now);
+            rows.add(new Row(Lang.t("hud.rep.eta"), e == null ? "—" : dev.skycore.data.Reputation.formatDays(e)));
+        }
+        String label = f.known() ? Lang.num(f.cur) + " / " + Lang.num(f.need) : null;
+        return new Content(title, Icon.SPARK, f.known() ? f.frac() : -1, label, rows);
+    }
+
+    private static dev.skycore.data.Reputation.Fac sampleRep() {
+        dev.skycore.data.Reputation.Fac f = new dev.skycore.data.Reputation.Fac();
+        f.cur = 1880; f.need = 3000;
+        return f;
+    }
+
     private record WidgetLines(HudStore.WidgetState w) {
         boolean on(String k) { return w == null || w.line(k); }
     }
@@ -208,12 +246,15 @@ public final class HudWidgets {
     /** A skill counts as "in use" while its XP was updated within this time. */
     private static final long SKILL_ACTIVE_MS = 120_000;
 
+    private static long now0() { return System.currentTimeMillis(); }
+
     /** True while the activity a widget belongs to is going on (dungeon run, slayer quest, recent skill XP). */
     public static boolean activityNow(String id) {
         if (Progress.isSample()) return true;
         return switch (id) {
             case "catacombs" -> dev.skycore.tracking.HypixelTracker.inDungeon() || dev.skycore.tracking.HypixelTracker.runActive();
             case "slayer" -> dev.skycore.tracking.HypixelTracker.slayerActive();
+            case "reputation" -> now0() - dev.skycore.data.Reputation.lastGainAt() < 10 * 60_000L;
             case "skill" -> {
                 ProfileData d = Progress.view();
                 long now = System.currentTimeMillis();

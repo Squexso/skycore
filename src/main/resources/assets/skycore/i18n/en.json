@@ -1357,5 +1357,20 @@
   "hud.pace": "Pace",
   "hud.pace.value": "{0} vs 7d avg",
   "hud.paused_afk": "Paused (AFK)",
-  "goals.eta_about": "about {0}"
+  "goals.eta_about": "about {0}",
+  "hud.widget.reputation": "Reputation",
+  "hud.line.rep_left": "Reputation left",
+  "hud.line.rep_today": "Gained today",
+  "hud.line.rep_eta": "Time to next level",
+  "hud.rep.none": "No reputation yet",
+  "hud.rep.unread": "Level not read yet",
+  "hud.rep.left": "Rep left",
+  "hud.rep.today": "Today",
+  "hud.rep.eta": "Next level",
+  "hud.rep.title.mage": "Mage Reputation",
+  "hud.rep.title.barbarian": "Barbarian Reputation",
+  "rep.lt_day": "under 1 day",
+  "rep.day": "about 1 day",
+  "rep.days": "about {0} days",
+  "rep.days_range": "about {0}–{1} days"
 }

@@ -1357,5 +1357,20 @@
   "hud.pace": "Tempo",
   "hud.pace.value": "{0} vs. 7-Tage-Ø",
   "hud.paused_afk": "Pausiert (AFK)",
-  "goals.eta_about": "ca. {0}"
+  "goals.eta_about": "ca. {0}",
+  "hud.widget.reputation": "Reputation",
+  "hud.line.rep_left": "Reputation fehlt",
+  "hud.line.rep_today": "Heute gewonnen",
+  "hud.line.rep_eta": "Zeit bis zum nächsten Level",
+  "hud.rep.none": "Noch keine Reputation",
+  "hud.rep.unread": "Level noch nicht gelesen",
+  "hud.rep.left": "Rep fehlt",
+  "hud.rep.today": "Heute",
+  "hud.rep.eta": "Nächstes Level",
+  "hud.rep.title.mage": "Magier-Reputation",
+  "hud.rep.title.barbarian": "Barbaren-Reputation",
+  "rep.lt_day": "unter 1 Tag",
+  "rep.day": "etwa 1 Tag",
+  "rep.days": "etwa {0} Tage",
+  "rep.days_range": "etwa {0}–{1} Tage"
 }

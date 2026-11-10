@@ -72,6 +72,7 @@ public final class Skycore {
         Progress.load();
         SessionLog.load();
         Goals.load();
+        dev.skycore.data.Reputation.load();
         HudStore.load();
         dev.skycore.data.History.load();
         stage("data files");
@@ -169,6 +170,7 @@ public final class Skycore {
         Progress.saveIfDirty();
         SessionLog.saveIfDirty();
         Goals.saveIfDirty();
+        dev.skycore.data.Reputation.saveIfDirty();
         dev.skycore.share.ShareService.saveIfDirty();
         HudStore.saveIfDirty();
         dev.skycore.data.History.saveIfDirty();
