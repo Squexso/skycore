@@ -199,7 +199,7 @@ public final class Progress {
         identified = true;
         identitySource = source;
         identifiedAt = d.lastSeen;
-        if (switched) { d.addActivity("activity.profile", "PROFILE", name); SideXp.reset(); }
+        if (switched) { d.addActivity("activity.profile", "PROFILE", name); SideXp.reset(); Pace.reset(); }
         SessionLog.profileIdentified(key, d);
         touch();
         return key;

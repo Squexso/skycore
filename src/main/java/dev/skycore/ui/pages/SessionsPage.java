@@ -1,6 +1,7 @@
 package dev.skycore.ui.pages;
 
 import dev.skycore.core.Lang;
+import dev.skycore.data.PeakTimes;
 import dev.skycore.data.SessionLog;
 import dev.skycore.data.StatDef;
 import dev.skycore.ui.Page;
@@ -113,6 +114,66 @@ public class SessionsPage implements Page {
             g.textRight(Lang.duration(e.getValue() * 1000L), card.right() - 16, ry + 7, t.textDim(), 0.9f, false);
             ry += 24;
         }
+        return card.bottom();
+    }
+
+    // peak-time analysis is cached: recomputed at most once per second and when the shown data object changes
+    private SessionLog.Data peakFor;
+    private long peakAt;
+    private PeakTimes.Result peak;
+
+    private PeakTimes.Result peakResult() {
+        SessionLog.Data d = SessionLog.view();
+        long now = System.currentTimeMillis();
+        if (peak == null || d != peakFor || now - peakAt >= 1000) {
+            peak = PeakTimes.analyze(d.buckets, ZoneId.systemDefault(), now);
+            peakFor = d;
+            peakAt = now;
+        }
+        return peak;
+    }
+
+    /** Bar chart of XP/h per hour of day (best 2-hour window highlighted) plus a one-line summary. */
+    private float peakTimes(Ui ui, Rect area, float y) {
+        Gfx g = ui.g;
+        Theme t = ui.t;
+        PeakTimes.Result r = peakResult();
+        Rect card = new Rect(area.x(), y, area.w(), r.enough() ? 170 : 130);
+        ui.card(card);
+        g.text(Lang.t("peak.title"), card.x() + 16, card.y() + 16, t.text(), 1.3f, true);
+        g.textRight(Lang.t("peak.sub"), card.right() - 16, card.y() + 18, t.textDim(), 0.85f, false);
+        if (!r.enough()) {
+            Rect box = new Rect(card.x() + 16, card.y() + 44, card.w() - 32, card.h() - 56);
+            g.textCentered(Lang.t("peak.not_enough"), box.cx(), box.y() + box.h() / 2 - 14, t.textDim(), 0.95f, false);
+            g.textCentered(g.ellipsize(Lang.t("peak.not_enough_desc"), box.w(), 0.85f), box.cx(), box.y() + box.h() / 2 + 4, t.textMute(), 0.85f, false);
+            return card.bottom();
+        }
+        double max = 0;
+        for (double v : r.hourRate()) if (!Double.isNaN(v)) max = Math.max(max, v);
+        Rect plot = new Rect(card.x() + 16, card.y() + 44, card.w() - 32, 70);
+        float slot = plot.w() / 24f, bw = Math.max(2, slot - 3);
+        for (int h = 0; h < 24; h++) {
+            float bx = plot.x() + h * slot + (slot - bw) / 2;
+            Rect col = new Rect(plot.x() + h * slot, plot.y(), slot, plot.h() + 14);
+            if (!r.rated(h)) {
+                g.rect(bx, plot.bottom() - 2, bw, 2, Col.alpha(t.textMute(), 0.35f)); // not rated: only a muted baseline tick
+            } else {
+                float bh = (float) Math.max(2, r.hourRate()[h] / Math.max(1, max) * plot.h());
+                g.rect(bx, plot.bottom() - bh, bw, bh, r.inBest(h) ? t.chart(0) : Col.alpha(t.textMute(), 0.7f));
+            }
+            if (h % 3 == 0) g.textCentered(String.format("%02d", h), plot.x() + h * slot + slot / 2, plot.bottom() + 4, t.textMute(), 0.8f, false);
+            if (ui.hover(col)) {
+                String hr = String.format("%02d:00-%02d:00", h, (h + 1) % 24);
+                ui.tooltip(r.rated(h) ? Lang.t("peak.tip", hr, Lang.compact(r.hourRate()[h])) : Lang.t("peak.tip_none", hr));
+            }
+        }
+        String win = String.format("%02d:00-%02d:00", r.bestStart(), (r.bestStart() + 2) % 24);
+        long pct = Math.round(r.advantage());
+        String pcts = (pct >= 0 ? "+" : "-") + Math.abs(pct) + "%";
+        String line = r.bestWeekday() == null
+                ? Lang.t("peak.summary_noday", win, Lang.compact(r.bestRate()), pcts)
+                : Lang.t("peak.summary", win, Lang.compact(r.bestRate()), pcts, r.bestWeekday().getDisplayName(TextStyle.FULL, Lang.locale()));
+        g.text(g.ellipsize(line, card.w() - 32, 0.95f), card.x() + 16, card.bottom() - 28, t.text(), 0.95f);
         return card.bottom();
     }
 
@@ -334,7 +395,8 @@ public class SessionsPage implements Page {
         }
         g.text(Lang.t("sessions.honest"), cat.x() + 16, cat.bottom() + 6, t.textMute(), 0.85f);
         float ay = areas(ui, area, cat.bottom() + 12, range);
-        float ty = timeline(ui, area, ay + 12);
+        float py = peakTimes(ui, area, ay + 12);
+        float ty = timeline(ui, area, py + 12);
         float hy = history(ui, area, ty + 12);
         return hy + 18 - area.y();
     }

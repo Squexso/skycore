@@ -32,6 +32,21 @@ public final class Estimate {
             return p + Lang.num(lo) + "–" + Lang.num(hi);
         }
 
+        /**
+         * Compact from-to text without a lead-in: "1h 15m - 2h 30m" (TIME) or "5-7 runs". A "~" marks a preliminary
+         * estimate (fewer than 3 samples); lo == hi shows a single value.
+         */
+        public String span() {
+            if (unit == StatDef.Unit.TIME) {
+                if (hi < 60_000) return Lang.t("time.lt_min");
+                String p = preliminary() ? "~" : "";
+                if (lo == hi) return p + Lang.duration(lo);
+                return p + Lang.durationShort(lo) + " - " + Lang.duration(hi);
+            }
+            String u = unitLabel();
+            return format() + (u.isEmpty() ? "" : " " + u);
+        }
+
         public String unitLabel() {
             return switch (unit) {
                 case RUNS -> Lang.t(mid == 1 ? "unit.run" : "unit.runs");
@@ -63,22 +78,38 @@ public final class Estimate {
             double hiGain = g.length < 4 ? g[g.length - 1] : pct(g, 0.75);
             double loGain = g.length < 4 ? g[0] : pct(g, 0.25);
             double med = pct(g, 0.5);
-            return new Range((long) Math.ceil(remaining / hiGain), (long) Math.ceil(remaining / loGain), (long) Math.ceil(remaining / med), g.length, def.unit());
+            long mid = (long) Math.ceil(remaining / med);
+            long lo = Math.min(mid, (long) Math.ceil(remaining / hiGain)), hi = Math.max(mid, (long) Math.ceil(remaining / loGain));
+            return new Range(lo, hi, mid, g.length, def.unit()); // one sample: lo == hi, flagged preliminary
         }
         if (def.unit() == StatDef.Unit.TIME) {
-            double[] rates = SessionLog.rateSamples(def.id());
-            if (rates.length == 0) return null;
-            Arrays.sort(rates);
-            double hi = rates.length < 4 ? rates[rates.length - 1] : pct(rates, 0.75);
-            double lo = rates.length < 4 ? rates[0] : pct(rates, 0.25);
-            double med = pct(rates, 0.5);
-            // Bucket rates are per active second, so they run higher than the XP/h shown on the HUD (today's XP over today's
-            // playtime). Anchor the range to that shown rate and keep only the spread of the buckets, so both agree.
-            double k = anchorFactor(def.id(), med);
-            hi *= k; lo *= k; med *= k;
-            return new Range(ms(remaining, hi), ms(remaining, lo), ms(remaining, med), rates.length, def.unit());
+            return timeRange(remaining, SessionLog.rateSamples(def.id()), med -> anchorFactor(def.id(), med), def.unit());
         }
         return null;
+    }
+
+    /** Spread limit around mid for TIME ranges (lo >= 0.5x mid, hi <= 2x mid). */
+    static final double MIN_FACTOR = 0.5, MAX_FACTOR = 2.0;
+
+    /**
+     * TIME range from XP/h samples. Bucket rates are per active second, so they run higher than the XP/h shown on the
+     * HUD (today's XP over today's playtime); anchor maps the bucket median to the shown rate and only the spread of the
+     * buckets is kept. Result is ordered lo <= mid <= hi and limited to [0.5x .. 2x] around mid; steady rates stay narrow.
+     */
+    static Range timeRange(double remaining, double[] samples, java.util.function.DoubleUnaryOperator anchor, StatDef.Unit unit) {
+        double[] rates = Arrays.stream(samples).filter(v -> v > 0).toArray();
+        if (rates.length == 0) return null;
+        Arrays.sort(rates);
+        double hi = rates.length < 4 ? rates[rates.length - 1] : pct(rates, 0.75);
+        double lo = rates.length < 4 ? rates[0] : pct(rates, 0.25);
+        double med = pct(rates, 0.5);
+        double k = anchor.applyAsDouble(med);
+        hi *= k; lo *= k; med *= k;
+        long mid = ms(remaining, med);
+        long fast = Math.min(mid, ms(remaining, hi)), slow = Math.max(mid, ms(remaining, lo));
+        fast = Math.max(fast, (long) (mid * MIN_FACTOR));
+        slow = Math.min(slow, (long) (mid * MAX_FACTOR));
+        return new Range(fast, Math.max(fast, slow), mid, rates.length, unit);
     }
 
     /** today's shown XP/h divided by the bucket median (1 when there is no usable rate for today). */

@@ -3,6 +3,7 @@ package dev.skycore.hud;
 import dev.skycore.core.Lang;
 import dev.skycore.data.Estimate;
 import dev.skycore.data.Goals;
+import dev.skycore.data.Pace;
 import dev.skycore.data.ProfileData;
 import dev.skycore.data.ProfileData.StatProgress;
 import dev.skycore.data.Progress;
@@ -23,8 +24,11 @@ import java.util.List;
 public final class HudWidgets {
     private HudWidgets() {}
 
-    public record Row(String label, String value, int color, float bar) {
-        Row(String label, String value) { this(label, value, 0, -1); }
+    /** tail = optional small coloured text (e.g. a trend) drawn right of the value; empty/null = none. */
+    public record Row(String label, String value, int color, float bar, String tail, int tailColor) {
+        Row(String label, String value) { this(label, value, 0, -1, null, 0); }
+        Row(String label, String value, int color, float bar) { this(label, value, color, bar, null, 0); }
+        boolean hasTail() { return tail != null && !tail.isEmpty(); }
     }
 
     public record Content(String title, Icon icon, float bar, String barLabel, List<Row> rows) {}
@@ -45,10 +49,10 @@ public final class HudWidgets {
     public static String[] lineKeys(String id) {
         return switch (id) {
             case "catacombs" -> new String[]{"remaining", "runs", "last"};
-            case "skill" -> new String[]{"remaining", "rate", "eta", "creatures"};
+            case "skill" -> new String[]{"remaining", "rate", "trend", "eta", "creatures"};
             case "slayer" -> new String[]{"remaining", "rate", "eta"};
-            case "session" -> new String[]{"time", "xp", "rate"};
-            default -> new String[]{"bars"};
+            case "session" -> new String[]{"time", "xp", "rate", "pace"};
+            default -> new String[]{"bars", "eta"};
         };
     }
 
@@ -111,7 +115,10 @@ public final class HudWidgets {
                         SessionLog.Totals tt = SessionLog.totals(SessionLog.range(SessionLog.Period.TODAY));
                         double xp = tt.byStat().getOrDefault(best.id(), 0d);
                         double h = tt.playMillis() / 3600_000.0;
-                        rows.add(new Row(Lang.t("hud.xp_hour"), h > 0.05 ? Lang.compact(xp / h) : "—"));
+                        // trend vs. the last hour: plain signed percent (the UI font has no arrow glyphs), only when significant
+                        Double tr = lines.on("trend") && !Progress.isSample() ? Pace.trendOf(best.id()) : null;
+                        rows.add(new Row(Lang.t("hud.xp_hour"), h > 0.05 ? Lang.compact(xp / h) : "—", 0, -1,
+                                tr == null || h <= 0.05 ? null : Pace.signedPercent(tr), tr == null ? 0 : tr > 0 ? Col.mix(t.success(), t.textDim(), 0.25f) : Col.mix(t.danger(), t.textDim(), 0.35f)));
                     } else if (!bp.gains.isEmpty()) {
                         rows.add(new Row(Lang.t("hud.last_boss"), "+" + Lang.compact(bp.lastGain()), t.success(), -1));
                     }
@@ -135,6 +142,17 @@ public final class HudWidgets {
                 if (lines.on("time")) rows.add(new Row(Lang.t("hud.playtime"), Lang.duration(tt.playMillis())));
                 if (lines.on("xp")) rows.add(new Row(Lang.t("hud.xp_today"), Lang.compact(tt.xp())));
                 if (lines.on("rate")) rows.add(new Row(Lang.t("hud.xp_hour"), h > 0.05 ? Lang.compact(tt.xp() / h) : "—"));
+                if (lines.on("pace") && !Progress.isSample()) {
+                    if (dev.skycore.tracking.HypixelTracker.afk()) {
+                        rows.add(new Row(Lang.t("hud.status"), Lang.t("hud.paused_afk"), t.textDim(), -1));
+                    } else {
+                        Pace.Result pr = Pace.current();
+                        if (pr != null && pr.significant()) {
+                            int c = pr.deviation() > 0 ? Col.mix(t.success(), t.textDim(), 0.35f) : Col.mix(t.danger(), t.textDim(), 0.45f);
+                            rows.add(new Row(Lang.t("hud.pace"), Lang.t("hud.pace.value", Pace.signedPercent(pr.deviation())), c, -1));
+                        }
+                    }
+                }
                 return new Content(Lang.t("hud.widget.session"), Icon.CLOCK, -1, null, rows);
             }
             default -> {
@@ -144,6 +162,14 @@ public final class HudWidgets {
                     StatDef def = StatDef.get(g.stat);
                     rows.add(new Row(Lang.t(def.nameKey()) + " " + g.target, Lang.percent(Goals.fraction(g)), 0, lines.on("bars") ? Goals.fraction(g) : -1));
                     n++;
+                    // honest from-to estimate; no row when no estimate is possible
+                    if (lines.on("eta")) {
+                        double rem = Goals.xpRemaining(g);
+                        if (rem > 0 && Goals.current(g) >= 0) {
+                            Estimate.Range e = Estimate.forXp(def, d.peek(g.stat), rem);
+                            if (e != null) rows.add(new Row(Lang.t("hud.eta"), e.span(), t.textDim(), -1));
+                        }
+                    }
                 }
                 if (rows.isEmpty()) rows.add(new Row(Lang.t("hud.no_goals"), "", t.textDim(), -1));
                 return new Content(Lang.t("hud.widget.goals"), Icon.GOALS, -1, null, rows);
@@ -218,7 +244,7 @@ public final class HudWidgets {
         float pad = st.padding, ts = st.textScale <= 0 ? 1 : st.textScale;
         float w = 0;
         if (st.showTitle) w = Gfx.measure(title(st, c), true) * ts + (st.showIcon ? 13 * ts : 0) + (c.barLabel() != null ? Gfx.measure(c.barLabel(), false) * 0.8f * ts + 10 : 0);
-        for (Row r : c.rows()) w = Math.max(w, (Gfx.measure(r.label(), false) + Gfx.measure(r.value(), false)) * ts + 14);
+        for (Row r : c.rows()) w = Math.max(w, (Gfx.measure(r.label(), false) + Gfx.measure(r.value(), false) + (r.hasTail() ? Gfx.measure(r.tail(), false) * 0.85f + 4 : 0)) * ts + 14);
         w = Math.max(96, w) + pad * 2;
         float h = pad * 2;
         if (st.showTitle) h += 10 * ts + st.spacing;
@@ -260,7 +286,12 @@ public final class HudWidgets {
         }
         for (Row r : c.rows()) {
             g.text(r.label(), pad, cy, dim, ts);
-            g.textRight(r.value(), w - pad, cy, r.color() != 0 ? r.color() : text, ts, false);
+            float vr = w - pad;
+            if (r.hasTail()) { // small trend text at the right edge, value shifted left of it
+                g.textRight(r.tail(), vr, cy + 0.5f * ts, r.tailColor(), 0.85f * ts, false);
+                vr -= g.width(r.tail(), 0.85f * ts) + 4;
+            }
+            g.textRight(r.value(), vr, cy, r.color() != 0 ? r.color() : text, ts, false);
             cy += 9 * ts;
             if (r.bar() >= 0) { bar(g, new Rect(pad, cy, w - pad * 2, 3), r.bar(), accent, t); cy += 5; }
             cy += st.spacing;
