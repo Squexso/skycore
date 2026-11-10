@@ -23,8 +23,9 @@ public final class Estimate {
 
         public String format() {
             if (unit == StatDef.Unit.TIME) {
+                if (hi < 60_000) return Lang.t("time.lt_min");
                 if (lo == hi) return "~" + Lang.duration(lo);
-                return Lang.duration(lo) + " – " + Lang.duration(hi);
+                return Lang.durationShort(lo) + " – " + Lang.duration(hi);
             }
             String p = preliminary() ? "~" : "";
             if (lo == hi) return p + Lang.num(lo);
