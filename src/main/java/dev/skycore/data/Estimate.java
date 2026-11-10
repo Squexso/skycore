@@ -126,20 +126,20 @@ public final class Estimate {
         return new Range(units.lo() * per, units.hi() * per, units.mid() * per, Math.min(units.samples(), pool.size() - 1), StatDef.Unit.TIME);
     }
 
-    /** Spread limit around mid for TIME ranges (lo >= 0.5x mid, hi <= 2x mid). */
-    static final double MIN_FACTOR = 0.5, MAX_FACTOR = 2.0;
+    /** Spread limit around mid for TIME ranges (lo >= 0.8x mid, hi <= 1.25x mid): a rate that wobbles from bucket to bucket still gives a usable span. */
+    static final double MIN_FACTOR = 0.8, MAX_FACTOR = 1.25;
 
     /**
      * TIME range from XP/h samples. Bucket rates are per active second, so they run higher than the XP/h shown on the
      * HUD (today's XP over today's playtime); anchor maps the bucket median to the shown rate and only the spread of the
-     * buckets is kept. Result is ordered lo <= mid <= hi and limited to [0.5x .. 2x] around mid; steady rates stay narrow.
+     * buckets is kept. Result is ordered lo <= mid <= hi and limited to [0.8x .. 1.25x] around mid; steady rates stay narrow.
      */
     static Range timeRange(double remaining, double[] samples, java.util.function.DoubleUnaryOperator anchor, StatDef.Unit unit) {
         double[] rates = Arrays.stream(samples).filter(v -> v > 0).toArray();
         if (rates.length == 0) return null;
         Arrays.sort(rates);
-        double hi = rates.length < 4 ? rates[rates.length - 1] : pct(rates, 0.75);
-        double lo = rates.length < 4 ? rates[0] : pct(rates, 0.25);
+        double hi = rates.length < 4 ? rates[rates.length - 1] : pct(rates, 0.65);
+        double lo = rates.length < 4 ? rates[0] : pct(rates, 0.35);
         double med = pct(rates, 0.5);
         double k = anchor.applyAsDouble(med);
         hi *= k; lo *= k; med *= k;
