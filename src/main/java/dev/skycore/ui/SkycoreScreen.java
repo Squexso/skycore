@@ -472,7 +472,7 @@ public class SkycoreScreen extends net.minecraft.client.gui.screens.Screen {
         if (finished) return;
         finished = true;
         try { Skycore.saveAll(); } catch (RuntimeException e) { Ui.logFault("save on close", e); } // a failed save must never keep the window open
-        if (minecraft != null && minecraft.screen == this) minecraft.setScreen(null);
+        if (minecraft != null && minecraft.gui.screen() == this) minecraft.gui.setScreen(null);
     }
 
     public Ui ui() { return ui; }

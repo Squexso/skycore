@@ -82,7 +82,7 @@ public class HudStudioPage implements Page {
         String open = Lang.t("hud.open_editor");
         float ow = g.width(open) + 30;
         if (ui.button("hs#open", new Rect(cv.right() - ow, cv.bottom() + 18, ow, 20), open, Icon.MOVE, Ui.Style.PRIMARY)) {
-            dev.skycore.core.Skycore.later(() -> Minecraft.getInstance().setScreen(new HudEditorScreen(screen)));
+            dev.skycore.core.Skycore.later(() -> Minecraft.getInstance().gui.setScreen(new HudEditorScreen(screen)));
         }
         float afterCanvas = cv.bottom() + 46;
         if (!wide) prof = new Rect(area.x(), afterCanvas, area.w(), 170);

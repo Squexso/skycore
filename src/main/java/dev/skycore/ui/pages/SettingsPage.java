@@ -335,7 +335,7 @@ public class SettingsPage implements Page {
             cy += 32;
             String ed = Lang.t("settings.open_editor");
             if (ui.button("set#editor", new Rect(s.x(), cy, ui.g.width(ed, 1f, Weight.MEDIUM) + 30, 22), ed, Icon.MOVE, Ui.Style.SECONDARY))
-                dev.skycore.core.Skycore.later(() -> Minecraft.getInstance().setScreen(new HudEditorScreen(screen)));
+                dev.skycore.core.Skycore.later(() -> Minecraft.getInstance().gui.setScreen(new HudEditorScreen(screen)));
             cy += 28;
         }
         return ui.endSection(s, cy);

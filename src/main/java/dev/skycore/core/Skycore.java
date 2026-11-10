@@ -136,12 +136,12 @@ public final class Skycore {
         for (Runnable r; (r = LATER.poll()) != null; ) {
             try { r.run(); } catch (RuntimeException e) { dev.skycore.ui.Ui.logFault("deferred task", e); }
         }
-        if (pendingScreen != null && mc.screen == null) {
-            mc.setScreen(pendingScreen);
+        if (pendingScreen != null && mc.gui.screen() == null) {
+            mc.gui.setScreen(pendingScreen);
             pendingScreen = null;
         }
-        while (openKey.consumeClick()) if (mc.screen == null) mc.setScreen(new SkycoreScreen());
-        while (hudKey.consumeClick()) if (mc.screen == null) mc.setScreen(new HudEditorScreen(null));
+        while (openKey.consumeClick()) if (mc.gui.screen() == null) mc.gui.setScreen(new SkycoreScreen());
+        while (hudKey.consumeClick()) if (mc.gui.screen() == null) mc.gui.setScreen(new HudEditorScreen(null));
         while (copyShareKey.consumeClick()) dev.skycore.share.ShareService.copyLatest(); // the player's own key press
         dev.skycore.share.ShareService.tick();
         boolean sky = HypixelTracker.onSkyBlock();

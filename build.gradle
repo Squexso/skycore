@@ -37,7 +37,7 @@ loom {
         capture {
             client()
             name = "SKYCORE Capture"
-            runDir = "run"
+            runDir = "run262"
             vmArg "-Dskycore.capture=true"
             vmArg "-Dskycore.capture.lang=" + (project.findProperty("captureLang") ?: "en")
             vmArg "-Dskycore.capture.expand=" + (project.findProperty("captureExpand") ?: "true")

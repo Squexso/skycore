@@ -55,7 +55,7 @@ public final class DevStress {
     private static Minecraft mc() { return Minecraft.getInstance(); }
 
     // ------------------------------------------------------------------ building blocks
-    private static void open(Screen s) { add(8, () -> mc().setScreen(s)); }
+    private static void open(Screen s) { add(8, () -> mc().gui.setScreen(s)); }
 
     private static void clickAt(SkycoreScreen s, java.util.function.Supplier<float[]> pos) {
         add(3, () -> mouse = pos.get());
@@ -71,7 +71,7 @@ public final class DevStress {
         return new float[]{dx + sw - 21, dy + 21};
     }
 
-    private static void expectNoScreen(String what) { add(12, () -> { }); add(1, () -> check(!(mc().screen instanceof SkycoreScreen) && !(mc().screen instanceof HudEditorScreen), what + ": back to the normal screen (now " + (mc().screen == null ? "none" : mc().screen.getClass().getSimpleName()) + ")")); }
+    private static void expectNoScreen(String what) { add(12, () -> { }); add(1, () -> check(!(mc().gui.screen() instanceof SkycoreScreen) && !(mc().gui.screen() instanceof HudEditorScreen), what + ": back to the normal screen (now " + (mc().gui.screen() == null ? "none" : mc().gui.screen().getClass().getSimpleName()) + ")")); }
 
     private static void escape(Screen s) { add(3, () -> s.keyPressed(new KeyEvent(256, 0, 0))); }
 
@@ -121,7 +121,7 @@ public final class DevStress {
             open(cd);
             add(8, () -> ((ProgressionPage) cd.page(1)).openCalibrate(cd.ui(), dev.skycore.data.StatDef.get("catacombs")));
             clickAt(cd, () -> modalX(cd, 210));
-            add(10, () -> check(mc().screen == cd, "calibrate modal X leaves the window open"));
+            add(10, () -> check(mc().gui.screen() == cd, "calibrate modal X leaves the window open"));
             clickAt(cd, () -> cd.devCloseCenter());
             expectNoScreen("calibrate modal X then main X");
             add(1, () -> scenarios++);
@@ -130,7 +130,7 @@ public final class DevStress {
             open(ce);
             add(8, () -> ((ProgressionPage) ce.page(1)).openCalibrate(ce.ui(), dev.skycore.data.StatDef.get("catacombs")));
             escape(ce);
-            add(10, () -> check(mc().screen == ce, "calibrate Escape leaves the window open"));
+            add(10, () -> check(mc().gui.screen() == ce, "calibrate Escape leaves the window open"));
             escape(ce);
             expectNoScreen("calibrate Escape then Escape");
             add(1, () -> scenarios++);
@@ -139,7 +139,7 @@ public final class DevStress {
             open(cm);
             add(8, () -> ((ProgressionPage) cm.page(1)).openCalibrate(cm.ui(), null));
             clickAt(cm, () -> modalX(cm, 130));
-            add(10, () -> check(mc().screen == cm, "fallback modal X leaves the window open"));
+            add(10, () -> check(mc().gui.screen() == cm, "fallback modal X leaves the window open"));
             clickAt(cm, () -> cm.devCloseCenter());
             expectNoScreen("fallback dialog then main X");
             add(1, () -> scenarios++);
@@ -159,22 +159,22 @@ public final class DevStress {
             // 9. editor opened from the SKYCORE window returns to it
             SkycoreScreen host = new SkycoreScreen(2);
             open(host);
-            add(8, () -> mc().setScreen(new HudEditorScreen(host)));
+            add(8, () -> mc().gui.setScreen(new HudEditorScreen(host)));
             escape2();
-            add(12, () -> check(mc().screen == host, "HUD editor Escape returns to the parent window"));
+            add(12, () -> check(mc().gui.screen() == host, "HUD editor Escape returns to the parent window"));
             clickAt(host, () -> host.devCloseCenter());
             expectNoScreen("parent window X after the editor");
             add(1, () -> scenarios++);
         }
     }
 
-    private static void escape2() { add(3, () -> { if (mc().screen != null) mc().screen.keyPressed(new KeyEvent(256, 0, 0)); }); }
+    private static void escape2() { add(3, () -> { if (mc().gui.screen() != null) mc().gui.screen().keyPressed(new KeyEvent(256, 0, 0)); }); }
 
     // ------------------------------------------------------------------ engine
     public static void tick(Minecraft mc) {
         if (!ENABLED || finished) return;
         if (!started) {
-            if (mc.screen == null || mc.getOverlay() != null) return;
+            if (mc.gui.screen() == null || mc.gui.overlay() != null) return;
             if (++boot < 100) return;
             started = true;
             Skycore.config().sampleData = true;

@@ -73,9 +73,9 @@ public final class DevCapture {
     public static void tick(Minecraft mc) {
         if (!ENABLED || DevStress.ENABLED) return;
         if (step == -1) {
-            if (mc.screen == null || mc.getOverlay() != null) return;
+            if (mc.gui.screen() == null || mc.gui.overlay() != null) return;
             if (++tick < 80) return;
-            Skycore.LOG.info("capture: starting over {}", mc.screen.getClass().getSimpleName());
+            Skycore.LOG.info("capture: starting over {}", mc.gui.screen().getClass().getSimpleName());
             Skycore.config().sampleData = true;
             // QA: open every collapsible section so its content is captured
             if (Boolean.getBoolean("skycore.capture.expand"))
@@ -89,22 +89,22 @@ public final class DevCapture {
             build();
             step = 0;
             tick = 0;
-            mc.setScreen(SHOTS.get(0).screen().get());
+            mc.gui.setScreen(SHOTS.get(0).screen().get());
             return;
         }
         tick++;
-        if (tick == 10 && pendingPage >= 0 && mc.screen instanceof SkycoreScreen sc) {
+        if (tick == 10 && pendingPage >= 0 && mc.gui.screen() instanceof SkycoreScreen sc) {
             sc.ui().setState("page" + pendingPage + "#target", pendingScroll);
             pendingPage = -1;
         }
         if (tick == 45) {
             String name = "skycore_" + LANG + "_" + System.getProperty("skycore.capture.tag", "") + SHOTS.get(step).name() + ".png";
-            Screenshot.grab(mc.gameDirectory, name, mc.getMainRenderTarget(), 1, c -> Skycore.LOG.info("capture: {}", c.getString()));
+            Screenshot.grab(mc.gameDirectory, name, mc.gameRenderer.mainRenderTarget(), 1, c -> Skycore.LOG.info("capture: {}", c.getString()));
         }
         if (tick >= 55) {
             tick = 0;
             step++;
-            if (step < SHOTS.size()) mc.setScreen(SHOTS.get(step).screen().get());
+            if (step < SHOTS.size()) mc.gui.setScreen(SHOTS.get(step).screen().get());
             else mc.stop();
         }
     }

@@ -744,7 +744,7 @@ public final class HypixelTracker {
         if (!enabled()) return;
         if (++sidebarTimer >= 20) { sidebarTimer = 0; guarded(Source.SIDEBAR, () -> readSidebar(mc)); }
         if (onSkyBlock && ++tabTimer >= 100) { tabTimer = 0; guarded(Source.TAB, () -> readTab(mc)); }
-        if (onSkyBlock && mc.screen instanceof AbstractContainerScreen<?> cs && ++menuTimer >= 10) { menuTimer = 0; guarded(Source.MENU, () -> scanMenu(cs)); }
+        if (onSkyBlock && mc.gui.screen() instanceof AbstractContainerScreen<?> cs && ++menuTimer >= 10) { menuTimer = 0; guarded(Source.MENU, () -> scanMenu(cs)); }
         if (++snapshotTimer >= 12_000) { snapshotTimer = 0; if (onSkyBlock && Progress.isIdentified()) History.snapshot(Progress.profileName(), Progress.real()); }
         finishSuspended(false);
         handleQuest(slayer.tick(System.currentTimeMillis()), "timeout");
@@ -778,7 +778,7 @@ public final class HypixelTracker {
         Health.available(Source.CHAT, onSkyBlock, "health.note.not_skyblock");
         Health.available(Source.ACTION_BAR, onSkyBlock, "health.note.not_skyblock");
         Health.available(Source.TAB, onSkyBlock, "health.note.not_skyblock");
-        Health.available(Source.MENU, onSkyBlock && mc.screen instanceof AbstractContainerScreen<?>, onSkyBlock ? "health.note.no_menu" : "health.note.not_skyblock");
+        Health.available(Source.MENU, onSkyBlock && mc.gui.screen() instanceof AbstractContainerScreen<?>, onSkyBlock ? "health.note.no_menu" : "health.note.not_skyblock");
         Health.available(Source.PROFILE, Progress.isIdentified(), onSkyBlock ? "health.note.profile_unknown" : "health.note.not_skyblock");
         Health.available(Source.DUNGEON, inDungeon(), "health.note.not_in_dungeon");
         Health.available(Source.SLAYER, slayerVisible, "health.note.no_slayer_quest");

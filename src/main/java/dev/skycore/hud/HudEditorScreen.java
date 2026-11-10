@@ -162,6 +162,6 @@ public class HudEditorScreen extends Screen {
 
     private void finish() {
         try { HudStore.save(); } catch (RuntimeException e) { Ui.logFault("HUD save on close", e); }
-        if (minecraft != null && minecraft.screen == this) minecraft.setScreen(parent);
+        if (minecraft != null && minecraft.gui.screen() == this) minecraft.gui.setScreen(parent);
     }
 }
