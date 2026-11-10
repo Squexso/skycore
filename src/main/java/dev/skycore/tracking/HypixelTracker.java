@@ -256,6 +256,7 @@ public final class HypixelTracker {
             String text = StringUtil.stripColor(message.getString());
             if (!overlay && dev.skycore.data.SideXp.isCreatureLine(text)) markActivity();
             if (!overlay) dev.skycore.data.SideXp.onChat(text, System.currentTimeMillis());
+            if (!overlay) dev.skycore.data.Reputation.onChat(text, System.currentTimeMillis());
             var channel = overlay ? MessageParser.Channel.ACTION_BAR : MessageParser.Channel.CHAT;
             List<MessageParser.Recognized> found = parser.recognize(text, channel);
             String source = overlay ? "action_bar" : "chat";
