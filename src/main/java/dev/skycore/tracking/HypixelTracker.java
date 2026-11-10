@@ -246,6 +246,7 @@ public final class HypixelTracker {
         try {
             Health.activity(src);
             String text = StringUtil.stripColor(message.getString());
+            if (!overlay) dev.skycore.data.SideXp.onChat(text, System.currentTimeMillis());
             var channel = overlay ? MessageParser.Channel.ACTION_BAR : MessageParser.Channel.CHAT;
             List<MessageParser.Recognized> found = parser.recognize(text, channel);
             String source = overlay ? "action_bar" : "chat";
@@ -377,7 +378,7 @@ public final class HypixelTracker {
                 double delta = Progress.observe(def, level, s.current(), s.need(), source);
                 double gain = dev.skycore.data.SideXp.gainFromDelta(delta, s.gain(), s.need(), prevObs > 0 ? now - prevObs : 0);
                 Progress.recordGainOnly(def, gain);
-                dev.skycore.data.SideXp.onGain(def.id(), gain, now, dev.skycore.data.SideXp.previous(Progress.view().peek(def.id()).gains));
+                dev.skycore.data.SideXp.onGain(def.id(), gain, now);
                 log("xp", def.id(), gain, source, rule, conf, true);
                 debug(ev, rule, conf, "new", true, "verified_value", "progress");
             }
@@ -388,7 +389,7 @@ public final class HypixelTracker {
                 if (key.equals(lastActionBar.put(def.id(), key))) return;
                 Progress.observePercent(def, s.percent());
                 Progress.recordGainOnly(def, s.gain());
-                dev.skycore.data.SideXp.onGain(def.id(), s.gain(), now, dev.skycore.data.SideXp.previous(Progress.view().peek(def.id()).gains));
+                dev.skycore.data.SideXp.onGain(def.id(), s.gain(), now);
                 log("xp", def.id(), s.gain(), source, rule, conf, true);
                 debug(ev, rule, conf, "new", true, "percent_value", "progress");
             }

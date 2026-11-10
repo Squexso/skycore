@@ -4,29 +4,44 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Kills made while a gathering skill is active (sea creatures while fishing, mobs while mining or foraging).
- * <p>
- * Nothing here is read from a special message: a kill shows up as Combat XP on the action bar, so a Combat gain that
- * arrives while the host skill gained XP in the last two minutes (or within five seconds after it) counts as one
- * creature for that skill. Counts live in memory for the current game session.
+ * Creature counters next to a skill.
+ * <ul>
+ *   <li><b>Fishing:</b> every sea creature gets its own chat line ("You caught a Sea Walker.", "You reeled in a Sea Archer.",
+ *       "You have angered a legendary creature... Lord Jawbus has arrived."), so each line counts one. A double hook
+ *       prints one line per creature. The Fishing XP that arrives within a few seconds is added to that creature.</li>
+ *   <li><b>Mining and foraging:</b> kills show up as Combat XP, so a Combat gain while that skill is active (last two minutes)
+ *       counts as one mob.</li>
+ * </ul>
+ * Counts live in memory for the current game session.
  */
 public final class SideXp {
     private SideXp() {}
 
     public record Counter(int count, double xp) {}
 
+    // Anchored at the start of the line: item catches ("GOOD CATCH! You caught ...") and player chat ("[MVP] name: ...") never match.
+    private static final Pattern CREATURE = Pattern.compile(
+            "^(?:You caught an? [A-Z][^.!]{1,40}\\.|You reeled in an? [A-Z][^.!]{1,40}\\.|(?:DOUBLE HOOK! )?You have angered a legendary creature\\.\\.\\. [^.!]{1,40} has arrived\\.)$");
+
+    private static final long XP_LINK_MS = 6_000L;
     private static final long HOST_WINDOW_MS = 120_000L;
     private static final long PENDING_MS = 5_000L;
+    private static final String FISHING = "skill_fishing";
     private static final String COMBAT = "skill_combat";
-    private static final List<String> HOSTS = List.of("skill_mining", "skill_foraging");
-    private static final List<String> COUNTED = List.of("skill_fishing", "skill_mining", "skill_foraging");
+    private static final List<String> COMBAT_HOSTS = List.of("skill_mining", "skill_foraging");
+    private static final List<String> COUNTED = List.of(FISHING, "skill_mining", "skill_foraging");
 
     private static final Map<String, Long> lastHostGain = new HashMap<>();
     private static final Map<String, int[]> counts = new HashMap<>();
     private static final Map<String, double[]> xps = new HashMap<>();
     private static final List<double[]> pending = new ArrayList<>(); // {time, xp} of combat gains with no host yet
+    private static long catchAt = -1;       // when the newest creature line arrived and still waits for its XP
+    private static long xpAt = -1;          // when the newest Fishing gain arrived and no creature line claimed it yet
+    private static double xpAmount;
 
     public static boolean isHost(String statId) { return COUNTED.contains(statId); }
 
@@ -35,6 +50,7 @@ public final class SideXp {
         counts.clear();
         xps.clear();
         pending.clear();
+        catchAt = xpAt = -1;
     }
 
     public static synchronized Counter get(String hostId) {
@@ -43,37 +59,38 @@ public final class SideXp {
         return new Counter(c == null ? 0 : c[0], x == null ? 0 : x[0]);
     }
 
-    /** Sea creature XP arrives as one large Fishing gain (real data: 45-182 per catch, 290-2,500 per creature). */
-    static final String FISHING = "skill_fishing";
-    static final double BIG_FACTOR = 3.0;
-    static final int MIN_SAMPLES = 8;
-
-    /** The gains before the newest one (at most 40), oldest first. */
-    public static double[] previous(List<ProfileData.Gain> gains) {
-        int end = gains.size() - 1;
-        int from = Math.max(0, end - 40);
-        double[] out = new double[Math.max(0, end - from)];
-        for (int i = from; i < end; i++) out[i - from] = gains.get(i).amount;
-        return out;
+    /** True if a chat line (colors stripped) announces a caught sea creature. */
+    public static boolean isCreatureLine(String text) {
+        if (text == null) return false;
+        Matcher m = CREATURE.matcher(text.trim());
+        return m.matches();
     }
 
-    /** True if {@code amount} is far above the usual gain of this skill. {@code recent} excludes the new gain. */
-    public static boolean isBigGain(double amount, double[] recent) {
-        if (recent == null || recent.length < MIN_SAMPLES) return false;
-        double[] s = recent.clone();
-        java.util.Arrays.sort(s);
-        double median = s[s.length / 2];
-        return median > 0 && amount >= median * BIG_FACTOR;
+    /** Call for every game chat line. */
+    public static synchronized void onChat(String text, long now) {
+        if (!isCreatureLine(text)) return;
+        credit(FISHING, 0);
+        if (xpAt >= 0 && now - xpAt <= XP_LINK_MS) { // the XP came first
+            xps.computeIfAbsent(FISHING, k -> new double[1])[0] += xpAmount;
+            xpAt = -1;
+            catchAt = -1;
+        } else {
+            catchAt = now;
+        }
     }
 
-    /**
-     * Call for every recorded skill gain. {@code recent} are the previous gains of that skill (newest last), used to spot
-     * a sea creature: Fishing gets its creature XP as one big gain and no Combat XP at all.
-     */
-    public static synchronized void onGain(String statId, double amount, long now, double[] recent) {
+    /** Call for every recorded skill gain. */
+    public static synchronized void onGain(String statId, double amount, long now) {
         if (amount <= 0) return;
         if (FISHING.equals(statId)) {
-            if (isBigGain(amount, recent)) credit(FISHING, amount);
+            if (catchAt >= 0 && now - catchAt <= XP_LINK_MS) { // the creature line came first
+                xps.computeIfAbsent(FISHING, k -> new double[1])[0] += amount;
+                catchAt = -1;
+                xpAt = -1;
+            } else {
+                xpAt = now;
+                xpAmount = amount;
+            }
             return;
         }
         pending.removeIf(p -> now - p[0] > PENDING_MS);
@@ -81,14 +98,13 @@ public final class SideXp {
             String host = activeHost(now);
             if (host != null) credit(host, amount);
             else pending.add(new double[]{now, amount});
-        } else if (HOSTS.contains(statId)) {
+        } else if (COMBAT_HOSTS.contains(statId)) {
             lastHostGain.put(statId, now);
             for (double[] p : pending) credit(statId, p[1]); // the combat bar came first
             pending.clear();
         }
     }
 
-    /** Mining and foraging mobs give Combat XP, so those two are counted from Combat gains. */
     private static String activeHost(long now) {
         String best = null;
         long bestT = 0;
