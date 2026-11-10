@@ -72,9 +72,27 @@ public final class Estimate {
             double hi = rates.length < 4 ? rates[rates.length - 1] : pct(rates, 0.75);
             double lo = rates.length < 4 ? rates[0] : pct(rates, 0.25);
             double med = pct(rates, 0.5);
+            // Bucket rates are per active second, so they run higher than the XP/h shown on the HUD (today's XP over today's
+            // playtime). Anchor the range to that shown rate and keep only the spread of the buckets, so both agree.
+            double k = anchorFactor(def.id(), med);
+            hi *= k; lo *= k; med *= k;
             return new Range(ms(remaining, hi), ms(remaining, lo), ms(remaining, med), rates.length, def.unit());
         }
         return null;
+    }
+
+    /** today's shown XP/h divided by the bucket median (1 when there is no usable rate for today). */
+    static double anchorFactor(String statId, double bucketMedian) {
+        if (bucketMedian <= 0) return 1;
+        try {
+            SessionLog.Totals tt = SessionLog.totals(SessionLog.range(SessionLog.Period.TODAY));
+            double hours = tt.playMillis() / 3600_000.0;
+            double xp = tt.byStat().getOrDefault(statId, 0d);
+            if (hours < 0.05 || xp <= 0) return 1;
+            return Math.max(0.2, Math.min(1.5, (xp / hours) / bucketMedian));
+        } catch (RuntimeException e) {
+            return 1;
+        }
     }
 
     private static long ms(double xp, double perHour) { return (long) (xp / perHour * 3600_000L); }
