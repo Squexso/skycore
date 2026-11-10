@@ -216,6 +216,7 @@ public class OverviewPage implements Page {
             case "mining" -> Icon.MINING;
             case "foraging" -> Icon.FORAGING;
             case "bestiary" -> Icon.BESTIARY;
+            case "nextup" -> Icon.GOALS;
             default -> Icon.LIST;
         };
     }
@@ -260,6 +261,7 @@ public class OverviewPage implements Page {
             case "foraging" -> foraging(ui, body);
             case "bestiary" -> bestiary(ui, body);
             case "activity" -> activity(ui, body);
+            case "nextup" -> nextUp(ui, body);
             default -> {}
         }
     }
@@ -435,6 +437,33 @@ public class OverviewPage implements Page {
         Rect[] c = Widgets.figureColumns(ui, figs, 2);
         Widgets.statTile(ui, c[0], Lang.t("progress.xp_remaining"), p.need > 0 ? Lang.compact(p.remaining()) : "—", null, 0);
         Widgets.statTile(ui, c[1], Lang.t("overview.xp_week"), Lang.compact(wk.byGroup().getOrDefault("foraging", 0d)), null, 0);
+    }
+
+    /** The stats closest to their next level by estimated time (only stats with real XP-per-hour data). */
+    private void nextUp(Ui ui, Rect r) {
+        Gfx g = ui.g;
+        Theme t = ui.t;
+        ProfileData d = Progress.view();
+        record Row(StatDef def, StatProgress p, dev.skycore.data.Estimate.Range range) {}
+        List<Row> rows = new ArrayList<>();
+        for (StatDef def : StatDef.ALL.values()) {
+            if (def.unit() != StatDef.Unit.TIME || def.table() == null) continue;
+            StatProgress p = d.peek(def.id());
+            if (!p.known() || p.need <= 0) continue;
+            dev.skycore.data.Estimate.Range range = dev.skycore.data.Estimate.forNextLevel(def, p);
+            if (range != null && range.mid() > 0) rows.add(new Row(def, p, range));
+        }
+        if (rows.isEmpty()) { emptySmall(ui, r, Lang.t("nextup.empty")); return; }
+        rows.sort(Comparator.comparingLong(x -> x.range().mid()));
+        float y = r.y();
+        for (int i = 0; i < Math.min(3, rows.size()); i++) {
+            Row w = rows.get(i);
+            String time = "~" + Lang.duration(w.range().mid());
+            g.text(g.ellipsize(Lang.t(w.def().nameKey()) + " " + (w.p().level + 1), r.w() - g.width(time, 0.9f, Weight.MEDIUM) - 12, 0.95f), r.x(), y, t.text(), 0.95f);
+            g.textRight(time, r.right(), y, t.textDim(), 0.9f, Weight.MEDIUM);
+            ui.progress("ov#nu" + i, new Rect(r.x(), y + 13, r.w(), 3), w.p().frac(), t.listBar(), t.listBar());
+            y += 30;
+        }
     }
 
     private void bestiary(Ui ui, Rect r) {

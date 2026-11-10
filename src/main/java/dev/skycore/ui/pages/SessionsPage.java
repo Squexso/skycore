@@ -93,6 +93,67 @@ public class SessionsPage implements Page {
         return key.equals(SessionLog.UNASSIGNED) ? Lang.t("sessions.unassigned") : ReliabilitySections.label(key);
     }
 
+    /** Where the play time went in the selected period (areas are recorded from the sidebar while the profile is confirmed). */
+    private float areas(Ui ui, Rect area, float y, SessionLog.Range range) {
+        Gfx g = ui.g;
+        Theme t = ui.t;
+        var top = SessionLog.areaSeconds(range);
+        if (top.size() > 6) top = top.subList(0, 6);
+        int max = top.isEmpty() ? 1 : Math.max(1, top.get(0).getValue());
+        Rect card = new Rect(area.x(), y, area.w(), 52 + Math.max(1, top.size()) * 24 + 6);
+        ui.card(card);
+        g.text(Lang.t("sessions.areas"), card.x() + 16, card.y() + 16, t.text(), 1.3f, true);
+        float ry = card.y() + 44;
+        if (top.isEmpty()) g.text(Lang.t("sessions.areas_none"), card.x() + 16, ry + 6, t.textMute(), 0.9f);
+        for (int i = 0; i < top.size(); i++) {
+            var e = top.get(i);
+            g.text(g.ellipsize(e.getKey(), card.w() * 0.34f, 0.95f), card.x() + 16, ry + 7, t.text(), 0.95f);
+            float bx = card.x() + card.w() * 0.40f, bw = card.w() * 0.38f;
+            ui.progress("ses#area" + i + period, new Rect(bx, ry + 10, bw, 4), e.getValue() / (float) max, t.listBar(), t.listBar());
+            g.textRight(Lang.duration(e.getValue() * 1000L), card.right() - 16, ry + 7, t.textDim(), 0.9f, false);
+            ry += 24;
+        }
+        return card.bottom();
+    }
+
+    private static String milestoneName(String stat) {
+        if (stat == null) return "—";
+        if (stat.startsWith("collection:")) return stat.substring(11);
+        if (stat.equals("bestiary_family")) return Lang.t("stat.bestiary");
+        StatDef def = StatDef.get(stat);
+        return def == null ? stat : Lang.t(def.nameKey());
+    }
+
+    /** Level-ups and milestones of the current profile, newest first (from the recorded history). */
+    private float timeline(Ui ui, Rect area, float y) {
+        Gfx g = ui.g;
+        Theme t = ui.t;
+        String profile = dev.skycore.data.Progress.profileName();
+        java.util.List<dev.skycore.data.History.Event> list = new java.util.ArrayList<>();
+        var events = dev.skycore.data.History.data().events;
+        for (int i = events.size() - 1; i >= 0 && list.size() < 10; i--) {
+            var e = events.get(i);
+            if (!e.applied || e.amount <= 0 || !("level".equals(e.kind) || "milestone".equals(e.kind))) continue;
+            if (profile != null && e.profile != null && !e.profile.equals(profile)) continue;
+            list.add(e);
+        }
+        Rect card = new Rect(area.x(), y, area.w(), 52 + Math.max(1, list.size()) * 22 + 6);
+        ui.card(card);
+        g.text(Lang.t("sessions.timeline"), card.x() + 16, card.y() + 16, t.text(), 1.3f, true);
+        g.textRight(Lang.t("sessions.timeline_sub"), card.right() - 16, card.y() + 18, t.textDim(), 0.85f, false);
+        float ry = card.y() + 44;
+        if (list.isEmpty()) g.text(Lang.t("sessions.timeline_none"), card.x() + 16, ry + 6, t.textMute(), 0.9f);
+        DateTimeFormatter f = DateTimeFormatter.ofPattern(Lang.code().equals("de") ? "EEE d.M. HH:mm" : "EEE MMM d, HH:mm", Lang.locale());
+        for (var e : list) {
+            ui.separator(card.x() + 16, ry, card.w() - 32);
+            g.text(f.format(Instant.ofEpochMilli(e.t).atZone(ZoneId.systemDefault())), card.x() + 16, ry + 7, t.textDim(), 0.9f);
+            g.text(g.ellipsize(milestoneName(e.stat) + " " + (int) e.amount, card.w() * 0.5f, 0.95f), card.x() + card.w() * 0.34f, ry + 7, t.text(), 0.95f);
+            g.textRight(Lang.t("sessions.timeline." + e.kind), card.right() - 16, ry + 7, t.textMute(), 0.85f, false);
+            ry += 22;
+        }
+        return card.bottom();
+    }
+
     /** Recent play sessions of the shown profile with duration, XP and level changes. */
     private float history(Ui ui, Rect area, float y) {
         Gfx g = ui.g;
@@ -272,7 +333,9 @@ public class SessionsPage implements Page {
             ry += 30;
         }
         g.text(Lang.t("sessions.honest"), cat.x() + 16, cat.bottom() + 6, t.textMute(), 0.85f);
-        float hy = history(ui, area, cat.bottom() + 12);
+        float ay = areas(ui, area, cat.bottom() + 12, range);
+        float ty = timeline(ui, area, ay + 12);
+        float hy = history(ui, area, ty + 12);
         return hy + 18 - area.y();
     }
 

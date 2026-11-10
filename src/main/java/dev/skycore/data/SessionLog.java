@@ -37,6 +37,8 @@ public final class SessionLog {
     public static class Bucket {
         public int playSeconds;
         public Map<String, Double> xp = new HashMap<>();
+        /** Seconds of active play per SkyBlock area (sidebar name). Recorded only while the profile is confirmed. */
+        public Map<String, Integer> areas = new HashMap<>();
     }
 
     /** One continuous play session on one profile. */
@@ -172,6 +174,29 @@ public final class SessionLog {
         play(target(), s);
         if (open != null && Progress.profileKey().equals(openKey)) open.playSeconds += s;
         dirty = true;
+    }
+
+    /** One second of active play in a named area (in addition to {@link #addPlaySeconds(int)}). */
+    public static void addAreaSeconds(String area, int s) {
+        if (area == null || area.isBlank() || !Progress.isIdentified()) return;
+        String name = area.trim();
+        if (name.length() > 40) name = name.substring(0, 40);
+        Bucket b = bucketNow(target());
+        if (b.areas == null) b.areas = new HashMap<>();
+        b.areas.merge(name, s, Integer::sum);
+        dirty = true;
+    }
+
+    /** Seconds per area in a range, largest first. */
+    public static List<Map.Entry<String, Integer>> areaSeconds(Range r) {
+        Map<String, Integer> sum = new HashMap<>();
+        for (Bucket b : view().buckets.subMap(r.start() / BUCKET, true, (r.end() - 1) / BUCKET, true).values()) {
+            if (b.areas == null) continue;
+            for (var e : b.areas.entrySet()) sum.merge(e.getKey(), e.getValue(), Integer::sum);
+        }
+        List<Map.Entry<String, Integer>> out = new ArrayList<>(sum.entrySet());
+        out.sort((a, c) -> Integer.compare(c.getValue(), a.getValue()));
+        return out;
     }
 
     private static void play(Data d, int s) {

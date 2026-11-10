@@ -27,7 +27,7 @@ import java.util.Map;
 public final class Notifier implements Progress.Listener {
     public record Toast(String title, String body, Icon icon, int color, long created, float duration) {}
 
-    public static final String[] CATEGORIES = {"level_up", "runs_away", "goals", "milestone", "best_run", "inactive"};
+    public static final String[] CATEGORIES = {"level_up", "runs_away", "goals", "milestone", "best_run", "inactive", "recap"};
 
     private static final List<Toast> toasts = new ArrayList<>();
     private static boolean remindedThisSession, initialised;
@@ -71,6 +71,7 @@ public final class Notifier implements Progress.Listener {
 
     /** Called every client tick: releases held alerts once the run or fight is over (one summary if there are many). */
     public static void tick() {
+        recap();
         if (held.isEmpty() || busy()) return;
         List<Held> out = new ArrayList<>(held);
         held.clear();
@@ -122,6 +123,7 @@ public final class Notifier implements Progress.Listener {
             case "goals" -> push(null, Lang.t("notify.goal.title"), text(category, Lang.t("notify.goal.body", v.get("goal")), v), Icon.TROPHY, Theme.get().success());
             case "milestone" -> push(null, Lang.t("notify.milestone.title"), text(category, Lang.t("notify.milestone.body", Lang.t("stat.bestiary"), 25), v), Icon.BESTIARY, Theme.get().warning());
             case "best_run" -> push(null, Lang.t("notify.best.title"), text(category, Lang.t("notify.best.body", "12,400"), v), Icon.FLAME, Theme.get().warning());
+            case "recap" -> push(null, Lang.t("notify.recap.title"), Lang.t("notify.recap.body_ups", "1h 20m", "420K", 2), Icon.CLOCK, Theme.get().primary());
             default -> push(null, Lang.t("notify.inactive.title", Lang.t("group.mining")), text(category, Lang.t("notify.inactive.body", Lang.t("group.mining"), "8d"), v), Icon.WARNING, Theme.get().warning());
         }
     }
@@ -166,6 +168,27 @@ public final class Notifier implements Progress.Listener {
     public void onBestRun(double xp) {
         push("best_run", Lang.t("notify.best.title"), text("best_run", Lang.t("notify.best.body", Lang.num(xp)),
                 Map.of("n", Lang.num(xp), "stat", Lang.t("stat.catacombs"))), Icon.FLAME, Theme.get().warning());
+    }
+
+    private static boolean recapDone;
+
+    /** Once per game session, when the profile is known: a short summary of the last finished play session. */
+    private static void recap() {
+        if (recapDone || Progress.isSample()) return;
+        if (!dev.skycore.tracking.HypixelTracker.onSkyBlock() || !Progress.isIdentified()) return;
+        recapDone = true;
+        SessionLog.Span last = null;
+        for (SessionLog.Span sp : SessionLog.view().spans) if (!"open".equals(sp.endReason) && sp.playSeconds >= 60) last = sp; // newest last
+        if (last == null) return;
+        int ups = 0;
+        for (var e : last.levelsEnd.entrySet()) {
+            Double before = last.levelsStart.get(e.getKey());
+            if (before != null && Math.floor(e.getValue()) > Math.floor(before)) ups++;
+        }
+        String dur = Lang.duration(last.playSeconds * 1000L), xp = Lang.compact(last.totalXp());
+        String body = last.totalXp() <= 0 ? Lang.t("notify.recap.body_short", dur)
+                : ups > 0 ? Lang.t("notify.recap.body_ups", dur, xp, ups) : Lang.t("notify.recap.body", dur, xp);
+        push("recap", Lang.t("notify.recap.title"), text("recap", body, Map.of("n", dur, "stat", xp)), Icon.CLOCK, Theme.get().primary());
     }
 
     /** Once per game session: remind about tracked categories that have been idle for a week. */

@@ -104,7 +104,7 @@ public class Config {
         // Default hierarchy: Catacombs progression first, the XP-per-hour chart second, then compact cards.
         // Existing users keep their saved order; this only seeds missing cards.
         String[][] defaults = {{"catacombs", "2"}, {"xp_chart", "2"}, {"session", "1"}, {"profile", "1"}, {"categories", "1"},
-                {"skills", "1"}, {"slayer", "1"}, {"goals", "1"}, {"mining", "1"}, {"foraging", "1"}, {"bestiary", "1"}, {"activity", "2"}};
+                {"skills", "1"}, {"slayer", "1"}, {"goals", "1"}, {"mining", "1"}, {"foraging", "1"}, {"bestiary", "1"}, {"activity", "2"}, {"nextup", "1"}};
         for (String[] d : defaults) {
             boolean found = overview.stream().anyMatch(c -> d[0].equals(c.id));
             if (!found) overview.add(new CardState(d[0], Integer.parseInt(d[1]), true));
