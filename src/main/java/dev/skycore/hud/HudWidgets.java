@@ -167,7 +167,10 @@ public final class HudWidgets {
                         double rem = Goals.xpRemaining(g);
                         if (rem > 0 && Goals.current(g) >= 0) {
                             Estimate.Range e = Estimate.forXp(def, d.peek(g.stat), rem);
-                            if (e != null) rows.add(new Row(Lang.t("hud.eta"), e.span(), t.textDim(), -1));
+                            if (e != null) {
+                                Estimate.Range tm = Estimate.withTime(def, d.peek(g.stat), e);
+                                rows.add(new Row(Lang.t("hud.eta"), (tm != null ? tm : e).span(), t.textDim(), -1));
+                            }
                         }
                     }
                 }
