@@ -71,12 +71,23 @@ public final class HudWidgets {
             }
             case "skill", "slayer" -> {
                 String prefix = id.equals("skill") ? "skill_" : "slayer_";
+                // The shown stat is the one with the newest real XP gain. "updated" is also touched by tab-list and menu
+                // reads of every skill, so using it made the box jump between skills every few seconds.
                 StatDef best = null;
                 StatProgress bp = null;
+                long bestT = 0;
                 for (StatDef def : StatDef.ALL.values()) {
                     if (!def.id().startsWith(prefix)) continue;
                     StatProgress p = d.peek(def.id());
-                    if (p.updated > 0 && (bp == null || p.updated > bp.updated)) { best = def; bp = p; }
+                    long gainT = p.gains.isEmpty() ? 0 : p.gains.get(p.gains.size() - 1).t;
+                    if (gainT > bestT) { best = def; bp = p; bestT = gainT; }
+                }
+                if (best == null) { // nothing gained yet: fall back to the newest reading
+                    for (StatDef def : StatDef.ALL.values()) {
+                        if (!def.id().startsWith(prefix)) continue;
+                        StatProgress p = d.peek(def.id());
+                        if (p.updated > 0 && (bp == null || p.updated > bp.updated)) { best = def; bp = p; }
+                    }
                 }
                 if (best == null) {
                     rows.add(new Row(Lang.t("hud.status"), Lang.t(id.equals("skill") ? "hud.no_skill" : "hud.no_slayer"), t.textDim(), -1));
