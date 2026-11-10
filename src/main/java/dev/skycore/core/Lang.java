@@ -87,7 +87,14 @@ public final class Lang {
         return num(v);
     }
 
-    public static String percent(double frac) { return Math.round(frac * 100) + "%"; }
+    /** Rounded, but never 100% before the goal is really reached (99.95% shows as 99%). */
+    public static String percent(double frac) {
+        long p = Math.round(frac * 100);
+        return (frac < 1 ? Math.min(99, p) : p) + "%";
+    }
+
+    /** A duration for ranges: under a minute reads "<1m" instead of "0m". */
+    public static String durationShort(long millis) { return millis < 60_000 ? t("time.lt_min") : duration(millis); }
 
     public static String duration(long millis) {
         long m = Math.max(0, millis) / 60000;

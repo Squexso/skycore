@@ -395,6 +395,7 @@
   "hud.last_boss": "Last boss",
   "hud.xp_hour": "XP / h",
   "hud.eta": "ETA",
+  "time.lt_min": "<1m",
   "hud.est_bosses": "Est. bosses",
   "hud.playtime": "Playtime",
   "hud.xp_today": "XP today",
