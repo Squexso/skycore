@@ -39,6 +39,11 @@ class SideXpTest {
                 "BrrRrRRr! A Yeti appeared!", "Hide your kids, hide your wife, it's a Great White Shark!",
                 "The end of days is here! Ragnarok has awoken!", "The elusive Nessie surfaces to greet you!"};
         for (String line : list2) assertTrue(SideXp.isCreatureLine(line), line);
+        // the third list
+        String[] list3 = {"A Sea Archer stood on the shore!", "A Catfish bit the line!", "A Trash Gobbler emerged from the junk!",
+                "gorF jumps out of the water!", "The Grinch stole your catch!", "A Jumpin' Jack springs up from the hotspot!",
+                "The legendary Wiki Tiki has been summoned!", "A Great White Shark attacks from the deep!"};
+        for (String line : list3) assertTrue(SideXp.isCreatureLine(line), line);
     }
 
     @Test
