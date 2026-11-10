@@ -7,6 +7,7 @@ import dev.skycore.data.ProfileData;
 import dev.skycore.data.ProfileData.StatProgress;
 import dev.skycore.data.Progress;
 import dev.skycore.data.SessionLog;
+import dev.skycore.data.SideXp;
 import dev.skycore.data.StatDef;
 import dev.skycore.ui.Rect;
 import dev.skycore.ui.gfx.Gfx;
@@ -44,7 +45,8 @@ public final class HudWidgets {
     public static String[] lineKeys(String id) {
         return switch (id) {
             case "catacombs" -> new String[]{"remaining", "runs", "last"};
-            case "skill", "slayer" -> new String[]{"remaining", "rate", "eta"};
+            case "skill" -> new String[]{"remaining", "rate", "eta", "creatures"};
+            case "slayer" -> new String[]{"remaining", "rate", "eta"};
             case "session" -> new String[]{"time", "xp", "rate"};
             default -> new String[]{"bars"};
         };
@@ -76,8 +78,18 @@ public final class HudWidgets {
                 StatDef best = null;
                 StatProgress bp = null;
                 long bestT = 0;
+                // Combat XP from a kill while gathering must not steal the box: while another skill gained XP in the last
+                // two minutes, Combat only wins if nothing else is active.
+                long nowMs = System.currentTimeMillis();
+                boolean otherActive = false;
+                for (StatDef def : StatDef.ALL.values()) {
+                    if (!def.id().startsWith(prefix) || def.id().equals("skill_combat")) continue;
+                    StatProgress p = d.peek(def.id());
+                    if (!p.gains.isEmpty() && nowMs - p.gains.get(p.gains.size() - 1).t <= 120_000L) otherActive = true;
+                }
                 for (StatDef def : StatDef.ALL.values()) {
                     if (!def.id().startsWith(prefix)) continue;
+                    if (otherActive && id.equals("skill") && def.id().equals("skill_combat")) continue;
                     StatProgress p = d.peek(def.id());
                     long gainT = p.gains.isEmpty() ? 0 : p.gains.get(p.gains.size() - 1).t;
                     if (gainT > bestT) { best = def; bp = p; bestT = gainT; }
@@ -107,6 +119,11 @@ public final class HudWidgets {
                 if (lines.on("eta")) {
                     Estimate.Range r = Estimate.forNextLevel(best, bp);
                     rows.add(new Row(Lang.t(id.equals("skill") ? "hud.eta" : "hud.est_bosses"), r == null ? "—" : r.format()));
+                }
+                if (id.equals("skill") && lines.on("creatures") && SideXp.isHost(best.id())) {
+                    SideXp.Counter c = Progress.isSample() ? new SideXp.Counter(14, 5200) : SideXp.get(best.id());
+                    String v = c.count() == 0 ? "0" : c.count() + " (+" + Lang.compact(c.xp()) + ")";
+                    rows.add(new Row(Lang.t("hud.creatures." + best.id()), v, c.count() > 0 ? t.success() : 0, -1));
                 }
                 String title = Lang.t(best.nameKey()) + (bp.known() ? " " + bp.level : "");
                 return new Content(title, best.icon(), bp.need > 0 || bp.percent >= 0 ? bp.frac() : -1, Lang.percent(bp.frac()), rows);
