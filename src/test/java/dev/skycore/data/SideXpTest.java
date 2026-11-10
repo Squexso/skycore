@@ -5,42 +5,70 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SideXpTest {
-    // real fishing gains: 45-182 per catch
-    private static final double[] USUAL = {182, 91, 46, 45, 182, 64, 64, 45, 182, 64, 46, 182, 46, 291 / 3.0};
-
     @Test
-    void bigFishingGainsAreSeaCreatures() {
-        SideXp.reset();
-        SideXp.onGain("skill_fishing", 1341, 1_000, USUAL);
-        SideXp.onGain("skill_fishing", 2457, 2_000, USUAL);
-        SideXp.onGain("skill_fishing", 182, 3_000, USUAL); // a normal catch
-        SideXp.onGain("skill_fishing", 91, 4_000, USUAL);
-        assertEquals(2, SideXp.get("skill_fishing").count());
-        assertEquals(3798, SideXp.get("skill_fishing").xp(), 0.001);
+    void recognisesTheRealCreatureLines() {
+        assertTrue(SideXp.isCreatureLine("You caught a Sea Walker."));
+        assertTrue(SideXp.isCreatureLine("You reeled in a Sea Archer."));
+        assertTrue(SideXp.isCreatureLine("You have angered a legendary creature... Lord Jawbus has arrived."));
+        assertTrue(SideXp.isCreatureLine("DOUBLE HOOK! You have angered a legendary creature... Lord Jawbus has arrived."));
+        assertTrue(SideXp.isCreatureLine("  You caught an Oasis Rabbit.  "));
     }
 
     @Test
-    void noVerdictWithoutEnoughHistory() {
+    void itemCatchesAndPlayerChatAreNotCreatures() {
+        assertFalse(SideXp.isCreatureLine("GOOD CATCH! You caught a Sponge x16!"));
+        assertFalse(SideXp.isCreatureLine("TROPHY FISH! You caught Blobfish BRONZE!"));
+        assertFalse(SideXp.isCreatureLine("GREAT CATCH! You caught an Enchanted Raw Salmon x4!"));
+        assertFalse(SideXp.isCreatureLine("[MVP+] Rod_S: DOUBLE HOOK! You have angered a legendary creature... Lord Jawbus has arrived."));
+        assertFalse(SideXp.isCreatureLine("[VIP] Steve: You caught a Sea Walker."));
+        assertFalse(SideXp.isCreatureLine(null));
+    }
+
+    @Test
+    void everyCreatureLineCountsOneAndDoubleHookCountsTwo() {
         SideXp.reset();
-        SideXp.onGain("skill_fishing", 2457, 1_000, new double[]{45, 46});
+        SideXp.onChat("You caught a Sea Walker.", 1_000);
+        SideXp.onChat("You reeled in a Sea Archer.", 20_000);
+        SideXp.onChat("You caught a Sea Walker.", 40_000);
+        SideXp.onChat("You caught a Sea Walker.", 40_010); // double hook: two lines at once
+        assertEquals(4, SideXp.get("skill_fishing").count());
+    }
+
+    @Test
+    void theFishingXpAfterTheLineBelongsToThatCreature() {
+        SideXp.reset();
+        SideXp.onChat("You caught a Sea Walker.", 1_000);
+        SideXp.onGain("skill_fishing", 655, 2_000);
+        SideXp.onGain("skill_fishing", 91, 15_000); // a normal catch later
+        assertEquals(1, SideXp.get("skill_fishing").count());
+        assertEquals(655, SideXp.get("skill_fishing").xp(), 0.001);
+    }
+
+    @Test
+    void theFishingXpCanAlsoComeBeforeTheLine() {
+        SideXp.reset();
+        SideXp.onGain("skill_fishing", 2457, 1_000);
+        SideXp.onChat("You reeled in a Sea Archer.", 1_500);
+        assertEquals(1, SideXp.get("skill_fishing").count());
+        assertEquals(2457, SideXp.get("skill_fishing").xp(), 0.001);
+    }
+
+    @Test
+    void normalCatchesDoNotCount() {
+        SideXp.reset();
+        SideXp.onGain("skill_fishing", 182, 1_000);
+        SideXp.onGain("skill_fishing", 91, 9_000);
+        SideXp.onChat("GOOD CATCH! You caught a Sponge x16!", 9_500);
         assertEquals(0, SideXp.get("skill_fishing").count());
-        assertFalse(SideXp.isBigGain(500, null));
-    }
-
-    @Test
-    void previousExcludesTheNewestGain() {
-        var g = new java.util.ArrayList<ProfileData.Gain>();
-        for (int i = 1; i <= 3; i++) g.add(new ProfileData.Gain(i, i * 10));
-        assertArrayEquals(new double[]{10, 20}, SideXp.previous(g), 0.001);
-        assertEquals(0, SideXp.previous(new java.util.ArrayList<>()).length);
+        assertEquals(0, SideXp.get("skill_fishing").xp(), 0.001);
     }
 
     @Test
     void combatGainWhileMiningCountsAsAMob() {
         SideXp.reset();
-        SideXp.onGain("skill_mining", 40, 1_000, USUAL);
-        SideXp.onGain("skill_combat", 300, 5_000, USUAL);
-        SideXp.onGain("skill_combat", 200, 30_000, USUAL);
+        SideXp.onGain("skill_mining", 40, 1_000);
+        SideXp.onGain("skill_combat", 300, 5_000);
+        SideXp.onGain("skill_combat", 200, 30_000);
         assertEquals(2, SideXp.get("skill_mining").count());
         assertEquals(500, SideXp.get("skill_mining").xp(), 0.001);
         assertEquals(0, SideXp.get("skill_fishing").count());
@@ -49,24 +77,24 @@ class SideXpTest {
     @Test
     void combatGainWithoutAHostSkillIsNotCounted() {
         SideXp.reset();
-        SideXp.onGain("skill_combat", 300, 5_000, USUAL);
-        SideXp.onGain("skill_mining", 40, 60_000, USUAL); // far later than the pending window
+        SideXp.onGain("skill_combat", 300, 5_000);
+        SideXp.onGain("skill_mining", 40, 60_000);
         assertEquals(0, SideXp.get("skill_mining").count());
     }
 
     @Test
     void combatBarThatComesFirstIsCreditedWhenTheHostGainFollows() {
         SideXp.reset();
-        SideXp.onGain("skill_combat", 300, 10_000, USUAL);
-        SideXp.onGain("skill_foraging", 40, 11_000, USUAL);
+        SideXp.onGain("skill_combat", 300, 10_000);
+        SideXp.onGain("skill_foraging", 40, 11_000);
         assertEquals(1, SideXp.get("skill_foraging").count());
     }
 
     @Test
     void hostGoesStaleAfterTwoMinutes() {
         SideXp.reset();
-        SideXp.onGain("skill_mining", 40, 0, USUAL);
-        SideXp.onGain("skill_combat", 300, 125_000, USUAL);
+        SideXp.onGain("skill_mining", 40, 0);
+        SideXp.onGain("skill_combat", 300, 125_000);
         assertEquals(0, SideXp.get("skill_mining").count());
     }
 
