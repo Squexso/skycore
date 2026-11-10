@@ -141,14 +141,9 @@ public final class Skycore {
             mc.gui.setScreen(pendingScreen);
             pendingScreen = null;
         }
-<<<<<<< HEAD
         while (openKey.consumeClick()) if (mc.gui.screen() == null) mc.gui.setScreen(new SkycoreScreen());
         while (hudKey.consumeClick()) if (mc.gui.screen() == null) mc.gui.setScreen(new HudEditorScreen(null));
-=======
-        while (openKey.consumeClick()) if (mc.screen == null) mc.setScreen(new SkycoreScreen());
-        while (hudKey.consumeClick()) if (mc.screen == null) mc.setScreen(new HudEditorScreen(null));
         while (toggleHudKey.consumeClick()) dev.skycore.hud.HudRenderer.hiddenByKey = !dev.skycore.hud.HudRenderer.hiddenByKey;
->>>>>>> 87b86a6 (HUD toggle key, hold alerts during runs and fights, share state in backups)
         while (copyShareKey.consumeClick()) dev.skycore.share.ShareService.copyLatest(); // the player's own key press
         dev.skycore.share.ShareService.tick();
         dev.skycore.notify.Notifier.tick();

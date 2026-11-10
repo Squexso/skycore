@@ -35,11 +35,7 @@ public final class HudRenderer {
         Gfx g = new Gfx(gg, mc.getWindow().getGuiScale());
         try {
             float sw = mc.getWindow().getGuiScaledWidth(), sh = mc.getWindow().getGuiScaledHeight();
-<<<<<<< HEAD
-            if (!editor && !(mc.gui.screen() instanceof SkycoreScreen) && cfg.hudEnabled && (!cfg.hudOnlySkyBlock || HypixelTracker.onSkyBlock() || cfg.sampleData)) {
-=======
-            if (!editor && !hiddenByKey && !(mc.screen instanceof SkycoreScreen) && cfg.hudEnabled && (!cfg.hudOnlySkyBlock || HypixelTracker.onSkyBlock() || cfg.sampleData)) {
->>>>>>> 87b86a6 (HUD toggle key, hold alerts during runs and fights, share state in backups)
+            if (!editor && !hiddenByKey && !(mc.gui.screen() instanceof SkycoreScreen) && cfg.hudEnabled && (!cfg.hudOnlySkyBlock || HypixelTracker.onSkyBlock() || cfg.sampleData)) {
                 drawWidgets(g, sw, sh);
             }
             if (!(mc.gui.screen() instanceof SkycoreScreen)) drawToasts(g, sw, sh);
