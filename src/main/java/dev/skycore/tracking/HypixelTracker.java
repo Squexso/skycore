@@ -915,6 +915,7 @@ public final class HypixelTracker {
         if (hash == menuHash || items.isEmpty()) return; // unchanged since last scan
         menuHash = hash;
         Health.activity(Source.MENU);
+        MenuDump.write(StringUtil.stripColor(screen.getTitle().getString()), items);
         List<ParsedEvent> events = MenuParser.parse(StringUtil.stripColor(screen.getTitle().getString()), items);
         if (events.isEmpty()) return;
         if (!Progress.isIdentified()) {
