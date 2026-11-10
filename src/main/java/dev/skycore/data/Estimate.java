@@ -88,6 +88,44 @@ public final class Estimate {
         return null;
     }
 
+    /** Longest gap between two kills/runs that still counts as "playing on"; longer breaks are not part of the time per boss. */
+    static final long MAX_GAP_MS = 20 * 60_000L, MIN_GAP_MS = 5_000L;
+    static final int MIN_GAPS = 3;
+
+    /**
+     * Typical time between two kills or runs (median gap in ms) from gain timestamps, oldest first. Breaks over 20 minutes and
+     * gaps under 5 seconds (double reports) are ignored. 0 when fewer than 3 usable gaps exist.
+     */
+    static long timePerUnitMs(java.util.List<ProfileData.Gain> gains) {
+        double[] gaps = new double[Math.max(0, gains.size() - 1)];
+        int n = 0;
+        for (int i = 1; i < gains.size(); i++) {
+            long gap = gains.get(i).t - gains.get(i - 1).t;
+            if (gap >= MIN_GAP_MS && gap <= MAX_GAP_MS) gaps[n++] = gap;
+        }
+        if (n < MIN_GAPS) return 0;
+        double[] used = Arrays.copyOf(gaps, n);
+        Arrays.sort(used);
+        return (long) pct(used, 0.5);
+    }
+
+    /**
+     * The same estimate as a time span, for runs/bosses goals: units range x typical time per unit. Null if the stat is not
+     * counted in runs/bosses or there is not enough history to know the time per unit.
+     */
+    public static Range withTime(StatDef def, StatProgress p, Range units) {
+        if (units == null || (def.unit() != StatDef.Unit.RUNS && def.unit() != StatDef.Unit.BOSSES)) return null;
+        String tag = p.gains.isEmpty() ? null : p.gains.get(p.gains.size() - 1).tag;
+        java.util.List<ProfileData.Gain> pool = p.gains;
+        if (tag != null) {
+            java.util.List<ProfileData.Gain> same = p.gains.stream().filter(x -> tag.equals(x.tag)).toList();
+            if (!same.isEmpty()) pool = same;
+        }
+        long per = timePerUnitMs(pool.subList(Math.max(0, pool.size() - 21), pool.size()));
+        if (per <= 0) return null;
+        return new Range(units.lo() * per, units.hi() * per, units.mid() * per, Math.min(units.samples(), pool.size() - 1), StatDef.Unit.TIME);
+    }
+
     /** Spread limit around mid for TIME ranges (lo >= 0.5x mid, hi <= 2x mid). */
     static final double MIN_FACTOR = 0.5, MAX_FACTOR = 2.0;
 

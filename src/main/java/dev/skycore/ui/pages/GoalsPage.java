@@ -129,9 +129,9 @@ public class GoalsPage implements Page {
         if (cur < 0) info = Lang.t("goals.unknown");
         else if (rem > 0) {
             Estimate.Range e = Estimate.forXp(def, p, rem);
-            info = Lang.t("goals.xp_to_go", Lang.compact(rem)) + (e != null ? " · " + etaText(e) : "");
+            info = Lang.t("goals.xp_to_go", Lang.compact(rem)) + (e != null ? " · " + etaText(e, Estimate.withTime(def, p, e)) : "");
         } else info = "";
-        g.text(g.ellipsize(info, in.w() * 0.65f, 0.85f), in.x(), in.y() + 80, t.textMute(), 0.85f);
+        g.text(g.ellipsize(info, in.w() * 0.72f, 0.85f), in.x(), in.y() + 80, t.textMute(), 0.85f);
         if (!Progress.isSample()) g.textRight(Lang.t("goals.created", Widgets.ago(goal.created)), in.right(), in.y() + 80, t.textMute(), 0.85f, false);
         if (cur >= 0 && f >= 1) Widgets.badge(ui, in.right() - g.width(Lang.t("goals.reached"), 0.85f) - 12, in.y() + 62, Lang.t("goals.reached"), t.success());
         if (goal.paused) Widgets.badge(ui, in.right() - g.width(Lang.t("goals.paused"), 0.85f) - 12, in.y() + 24, Lang.t("goals.paused"), t.textDim());
@@ -153,6 +153,11 @@ public class GoalsPage implements Page {
     /** "about 1h 15m - 2h 30m"; a preliminary estimate already carries its own "~" and gets no lead-in. */
     private static String etaText(Estimate.Range e) {
         return e.preliminary() ? e.span() : Lang.t("goals.eta_about", e.span());
+    }
+
+    /** Runs/bosses goals: the time span first, the count in brackets ("about 5h 30m - 7h (826 bosses)"). */
+    private static String etaText(Estimate.Range units, Estimate.Range time) {
+        return time == null ? etaText(units) : etaText(time) + " (" + units.span() + ")";
     }
 
     private void createCard(Ui ui, Rect r) {
