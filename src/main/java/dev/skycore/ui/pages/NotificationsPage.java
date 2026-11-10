@@ -72,7 +72,10 @@ public class NotificationsPage implements Page {
                 boolean v = ui.toggleRow("nt#c" + cat, row, Lang.t("notify.cat." + cat), null, n.categories.getOrDefault(cat, true), Lang.t("tip.notify." + cat));
                 if (v != n.categories.getOrDefault(cat, true)) { n.categories.put(cat, v); Skycore.markDirty(); }
             }
-            cy += ((Notifier.CATEGORIES.length + cols - 1) / cols) * 28;
+            cy += ((Notifier.CATEGORIES.length + cols - 1) / cols) * 28 + 6;
+            boolean quiet = ui.toggleRow("nt#quiet", new Rect(s.x() - 8, cy, s.w() + 8, 30), Lang.t("notify.quiet"), Lang.t("notify.quiet_desc"), n.quietWhenBusy);
+            if (quiet != n.quietWhenBusy) { n.quietWhenBusy = quiet; Skycore.markDirty(); }
+            cy += 36;
         }
         return ui.endSection(s, cy);
     }

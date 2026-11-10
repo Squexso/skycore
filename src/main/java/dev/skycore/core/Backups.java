@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 public final class Backups {
     private static final DateTimeFormatter STAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
     public static final int FORMAT = 2;
-    public static final String[] SECTIONS = {"config", "progress", "sessions", "goals", "hud", "history"};
+    public static final String[] SECTIONS = {"config", "progress", "sessions", "goals", "hud", "history", "share"};
     private static final long PERIODIC = 6 * 3600_000L, DAILY = 20 * 3600_000L;
     private static final int KEEP_SAFETY = 10, KEEP_MIGRATION = 10;
 
@@ -72,6 +72,7 @@ public final class Backups {
         sections.add("goals", Storage.GSON.toJsonTree(Goals.snapshot()));
         sections.add("hud", Storage.GSON.toJsonTree(HudStore.snapshot()));
         sections.add("history", Storage.GSON.toJsonTree(History.data()));
+        if (dev.skycore.share.ShareService.state() != null) sections.add("share", Storage.GSON.toJsonTree(dev.skycore.share.ShareService.state()));
         return wrap(sections, System.currentTimeMillis());
     }
 
@@ -293,6 +294,7 @@ public final class Backups {
         try { if (s.has("goals")) { Goals.restore(s.get("goals")); n++; } } catch (Exception e) { Skycore.LOG.warn("Skipped goals", e); }
         try { if (s.has("hud")) { HudStore.restore(s.get("hud")); n++; } } catch (Exception e) { Skycore.LOG.warn("Skipped hud", e); }
         try { if (s.has("history")) { History.restore(s.get("history")); n++; } } catch (Exception e) { Skycore.LOG.warn("Skipped history", e); }
+        try { if (s.has("share") && !s.get("share").isJsonNull()) { dev.skycore.share.ShareService.restore(s.get("share")); n++; } } catch (Exception e) { Skycore.LOG.warn("Skipped share", e); }
         Skycore.saveAll();
         return n;
     }

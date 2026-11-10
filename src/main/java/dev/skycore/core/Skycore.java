@@ -29,7 +29,7 @@ public final class Skycore {
     public static final Logger LOG = LoggerFactory.getLogger("SKYCORE");
     private static Config config = new Config();
     private static boolean configDirty;
-    private static KeyMapping openKey, hudKey, copyShareKey;
+    private static KeyMapping openKey, hudKey, copyShareKey, toggleHudKey;
     private static Screen pendingScreen;
     private static final java.util.concurrent.ConcurrentLinkedQueue<Runnable> LATER = new java.util.concurrent.ConcurrentLinkedQueue<>();
 
@@ -96,6 +96,7 @@ public final class Skycore {
         hudKey = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.skycore.hud_editor", InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), cat));
 
         copyShareKey = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.skycore.copy_share", InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), cat));
+        toggleHudKey = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.skycore.toggle_hud", InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), cat));
         ClientReceiveMessageEvents.GAME.register(HypixelTracker::onGameMessage);
         ClientTickEvents.END_CLIENT_TICK.register(Skycore::tick);
         ClientLifecycleEvents.CLIENT_STOPPING.register(mc -> {
@@ -142,8 +143,10 @@ public final class Skycore {
         }
         while (openKey.consumeClick()) if (mc.screen == null) mc.setScreen(new SkycoreScreen());
         while (hudKey.consumeClick()) if (mc.screen == null) mc.setScreen(new HudEditorScreen(null));
+        while (toggleHudKey.consumeClick()) dev.skycore.hud.HudRenderer.hiddenByKey = !dev.skycore.hud.HudRenderer.hiddenByKey;
         while (copyShareKey.consumeClick()) dev.skycore.share.ShareService.copyLatest(); // the player's own key press
         dev.skycore.share.ShareService.tick();
+        dev.skycore.notify.Notifier.tick();
         boolean sky = HypixelTracker.onSkyBlock();
         if (sky && !wasOnSkyBlock) Notifier.inactivityReminder();
         wasOnSkyBlock = sky;

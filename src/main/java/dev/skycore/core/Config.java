@@ -60,6 +60,8 @@ public class Config {
 
     public static class NotificationSettings {
         public boolean enabled = true;
+        /** Hold alerts during a dungeon run or slayer fight and show them together afterwards. */
+        public boolean quietWhenBusy = true;
         public List<Integer> runThresholds = new ArrayList<>(List.of(10, 5, 1));
         public Map<String, Boolean> categories = new LinkedHashMap<>();
         public float duration = 5f;

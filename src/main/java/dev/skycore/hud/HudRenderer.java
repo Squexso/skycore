@@ -24,6 +24,9 @@ public final class HudRenderer {
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("skycore", "hud"), (g, delta) -> render(g));
     }
 
+    /** Set by the "Show/hide HUD" key: hides every HUD box for this game session (settings are not changed). */
+    public static boolean hiddenByKey;
+
     private static void render(GuiGraphicsExtractor gg) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.options.hideGui) return;
@@ -32,7 +35,7 @@ public final class HudRenderer {
         Gfx g = new Gfx(gg, mc.getWindow().getGuiScale());
         try {
             float sw = mc.getWindow().getGuiScaledWidth(), sh = mc.getWindow().getGuiScaledHeight();
-            if (!editor && !(mc.screen instanceof SkycoreScreen) && cfg.hudEnabled && (!cfg.hudOnlySkyBlock || HypixelTracker.onSkyBlock() || cfg.sampleData)) {
+            if (!editor && !hiddenByKey && !(mc.screen instanceof SkycoreScreen) && cfg.hudEnabled && (!cfg.hudOnlySkyBlock || HypixelTracker.onSkyBlock() || cfg.sampleData)) {
                 drawWidgets(g, sw, sh);
             }
             if (!(mc.screen instanceof SkycoreScreen)) drawToasts(g, sw, sh);

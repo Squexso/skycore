@@ -2,5 +2,6 @@
   "key.category.skycore.main": "SKYCORE",
   "key.skycore.open": "SKYCORE öffnen",
   "key.skycore.hud_editor": "HUD-Editor öffnen",
-  "key.skycore.copy_share": "Letzte Teilen-Nachricht kopieren"
+  "key.skycore.copy_share": "Letzte Teilen-Nachricht kopieren",
+  "key.skycore.toggle_hud": "HUD ein- oder ausblenden"
 }

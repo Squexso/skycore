@@ -1319,5 +1319,9 @@
   "share.tpl.major.3": "Big one done: {milestone}. Next goal: {next_goal}.",
   "share.tpl.report.1": "Progress report: {milestone}, {remaining} left to the next level.",
   "share.tpl.report.2": "Currently at {milestone}. {runs_total} dungeon runs recorded so far.",
-  "share.tpl.report.3": "{player}'s progress: {milestone}. {remaining} to go."
+  "share.tpl.report.3": "{player}'s progress: {milestone}. {remaining} to go.",
+  "notify.quiet": "Hold alerts during runs and fights",
+  "notify.quiet_desc": "Alerts wait while you are in a dungeon run or a slayer fight and appear together afterwards.",
+  "notify.held.title": "{0} alerts while you were busy",
+  "notify.held.body": "Your run or fight is over. Open SKYCORE to see what changed."
 }
