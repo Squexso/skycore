@@ -20,14 +20,15 @@ public final class SideXp {
     private static final long HOST_WINDOW_MS = 120_000L;
     private static final long PENDING_MS = 5_000L;
     private static final String COMBAT = "skill_combat";
-    private static final List<String> HOSTS = List.of("skill_fishing", "skill_mining", "skill_foraging");
+    private static final List<String> HOSTS = List.of("skill_mining", "skill_foraging");
+    private static final List<String> COUNTED = List.of("skill_fishing", "skill_mining", "skill_foraging");
 
     private static final Map<String, Long> lastHostGain = new HashMap<>();
     private static final Map<String, int[]> counts = new HashMap<>();
     private static final Map<String, double[]> xps = new HashMap<>();
     private static final List<double[]> pending = new ArrayList<>(); // {time, xp} of combat gains with no host yet
 
-    public static boolean isHost(String statId) { return HOSTS.contains(statId); }
+    public static boolean isHost(String statId) { return COUNTED.contains(statId); }
 
     public static synchronized void reset() {
         lastHostGain.clear();
@@ -42,9 +43,39 @@ public final class SideXp {
         return new Counter(c == null ? 0 : c[0], x == null ? 0 : x[0]);
     }
 
-    /** Call for every recorded skill gain. */
-    public static synchronized void onGain(String statId, double amount, long now) {
+    /** Sea creature XP arrives as one large Fishing gain (real data: 45-182 per catch, 290-2,500 per creature). */
+    static final String FISHING = "skill_fishing";
+    static final double BIG_FACTOR = 3.0;
+    static final int MIN_SAMPLES = 8;
+
+    /** The gains before the newest one (at most 40), oldest first. */
+    public static double[] previous(List<ProfileData.Gain> gains) {
+        int end = gains.size() - 1;
+        int from = Math.max(0, end - 40);
+        double[] out = new double[Math.max(0, end - from)];
+        for (int i = from; i < end; i++) out[i - from] = gains.get(i).amount;
+        return out;
+    }
+
+    /** True if {@code amount} is far above the usual gain of this skill. {@code recent} excludes the new gain. */
+    public static boolean isBigGain(double amount, double[] recent) {
+        if (recent == null || recent.length < MIN_SAMPLES) return false;
+        double[] s = recent.clone();
+        java.util.Arrays.sort(s);
+        double median = s[s.length / 2];
+        return median > 0 && amount >= median * BIG_FACTOR;
+    }
+
+    /**
+     * Call for every recorded skill gain. {@code recent} are the previous gains of that skill (newest last), used to spot
+     * a sea creature: Fishing gets its creature XP as one big gain and no Combat XP at all.
+     */
+    public static synchronized void onGain(String statId, double amount, long now, double[] recent) {
         if (amount <= 0) return;
+        if (FISHING.equals(statId)) {
+            if (isBigGain(amount, recent)) credit(FISHING, amount);
+            return;
+        }
         pending.removeIf(p -> now - p[0] > PENDING_MS);
         if (COMBAT.equals(statId)) {
             String host = activeHost(now);
@@ -57,6 +88,7 @@ public final class SideXp {
         }
     }
 
+    /** Mining and foraging mobs give Combat XP, so those two are counted from Combat gains. */
     private static String activeHost(long now) {
         String best = null;
         long bestT = 0;
