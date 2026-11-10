@@ -122,7 +122,8 @@ public final class HudWidgets {
                 }
                 if (id.equals("skill") && lines.on("creatures") && SideXp.isHost(best.id())) {
                     SideXp.Counter c = Progress.isSample() ? new SideXp.Counter(14, 5200) : SideXp.get(best.id());
-                    String v = c.count() == 0 ? "0" : c.count() + " (+" + Lang.compact(c.xp()) + ")";
+                    // Fishing: the creature lines and the XP lines are not reliably paired in time, so only the count is shown there.
+                    String v = c.count() == 0 ? "0" : best.id().equals("skill_fishing") ? String.valueOf(c.count()) : c.count() + " (+" + Lang.compact(c.xp()) + ")";
                     rows.add(new Row(Lang.t("hud.creatures." + best.id()), v, c.count() > 0 ? t.success() : 0, -1));
                 }
                 String title = Lang.t(best.nameKey()) + (bp.known() ? " " + bp.level : "");
