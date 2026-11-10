@@ -102,6 +102,14 @@ public final class HypixelTracker {
     private static double lastX, lastZ;
     private static float lastYaw, lastPitch;
     private static long lastInput = System.currentTimeMillis();
+    /** No movement, look change or relevant game event for this long = the player is away: playtime stops counting. */
+    public static final long AFK_MS = 180_000L;
+
+    /** A relevant action (XP gain, run, sea creature) happened: it counts as activity even if the player stands still, e.g. while fishing. */
+    public static void markActivity() { lastInput = System.currentTimeMillis(); }
+
+    /** True on SkyBlock while nothing has happened for {@link #AFK_MS}: the session is paused and playtime is not counted. */
+    public static boolean afk() { return onSkyBlock && System.currentTimeMillis() - lastInput >= AFK_MS; }
     private static int secondTicks;
 
     // ------------------------------------------------------------------ status (for the UI)
@@ -246,6 +254,7 @@ public final class HypixelTracker {
         try {
             Health.activity(src);
             String text = StringUtil.stripColor(message.getString());
+            if (!overlay && dev.skycore.data.SideXp.isCreatureLine(text)) markActivity();
             if (!overlay) dev.skycore.data.SideXp.onChat(text, System.currentTimeMillis());
             var channel = overlay ? MessageParser.Channel.ACTION_BAR : MessageParser.Channel.CHAT;
             List<MessageParser.Recognized> found = parser.recognize(text, channel);
@@ -372,6 +381,7 @@ public final class HypixelTracker {
                 if (def == null) { debug(ev, rule, conf, "-", false, "unknown_skill", "-"); return; }
                 String key = s.skill() + s.gain() + "|" + s.current() + "/" + s.need();
                 if (key.equals(lastActionBar.put(def.id(), key))) return; // Hypixel repeats the bar every second (not logged: too frequent)
+                markActivity();
                 int level = XpTables.levelFromNeed(def.table(), (long) s.need(), def.maxLevel());
                 if (level < 0) { debug(ev, rule, conf, "new", false, "level_not_derivable", "-"); return; }
                 long prevObs = Progress.view().peek(def.id()).verifiedAt;
@@ -387,6 +397,7 @@ public final class HypixelTracker {
                 if (def == null) return;
                 String key = s.skill() + s.gain() + "|" + s.percent();
                 if (key.equals(lastActionBar.put(def.id(), key))) return;
+                markActivity();
                 Progress.observePercent(def, s.percent());
                 Progress.recordGainOnly(def, s.gain());
                 dev.skycore.data.SideXp.onGain(def.id(), s.gain(), now);
@@ -398,6 +409,7 @@ public final class HypixelTracker {
             case ParsedEvent.DungeonStart d -> { startRun(now); Health.success(Source.DUNGEON); debug(ev, rule, conf, "-", true, "run_started", "history"); }
             case ParsedEvent.ClassSelected c -> { runClass = c.dungeonClass(); debug(ev, rule, conf, "-", true, "class_selected", "-"); }
             case ParsedEvent.CatacombsXp c -> {
+                markActivity();
                 if (EVENTS.duplicate("cata:" + c.xp(), now)) { log("duplicate", "catacombs", c.xp(), source, rule, conf, false); debug(ev, rule, conf, "duplicate", false, "duplicate", "history"); return; }
                 if (!Skycore.config().tracks("dungeons")) { log("xp", "catacombs", c.xp(), source, rule, conf, false); debug(ev, rule, conf, "new", false, "category_disabled", "history"); return; }
                 StatDef def = StatDef.get("catacombs");
@@ -760,7 +772,7 @@ public final class HypixelTracker {
         lastX = x; lastZ = z; lastYaw = yaw; lastPitch = pitch;
         if (++secondTicks >= 20) {
             secondTicks = 0;
-            if (onSkyBlock && System.currentTimeMillis() - lastInput < 180_000) { SessionLog.addPlaySeconds(1); SessionLog.addAreaSeconds(area, 1); }
+            if (onSkyBlock && System.currentTimeMillis() - lastInput < AFK_MS) { SessionLog.addPlaySeconds(1); SessionLog.addAreaSeconds(area, 1); }
         }
     }
 
