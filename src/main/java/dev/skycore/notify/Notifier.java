@@ -59,9 +59,40 @@ public final class Notifier implements Progress.Listener {
         return out;
     }
 
+    private record Held(String category, String title, String body, Icon icon, int color) {}
+
+    private static final List<Held> held = new ArrayList<>();
+
+    /** True while a dungeon run or a slayer fight is going on - alerts wait until it is over. */
+    static boolean busy() {
+        return dev.skycore.tracking.HypixelTracker.inDungeon() || dev.skycore.tracking.HypixelTracker.runActive()
+                || dev.skycore.tracking.HypixelTracker.slayerActive();
+    }
+
+    /** Called every client tick: releases held alerts once the run or fight is over (one summary if there are many). */
+    public static void tick() {
+        if (held.isEmpty() || busy()) return;
+        List<Held> out = new ArrayList<>(held);
+        held.clear();
+        if (out.size() <= 2) {
+            for (Held h : out) show(h.category(), h.title(), h.body(), h.icon(), h.color());
+        } else {
+            show("milestone", Lang.t("notify.held.title", out.size()), Lang.t("notify.held.body"), Icon.BELL, Theme.get().primary());
+        }
+    }
+
     public static void push(String category, String title, String body, Icon icon, int color) {
         Config.NotificationSettings n = Skycore.config().notifications;
         if (!n.enabled || (category != null && !n.categories.getOrDefault(category, true))) return;
+        if (n.quietWhenBusy && category != null && !Progress.isSample() && busy()) {
+            if (held.size() < 20) held.add(new Held(category, title, body, icon, color));
+            return;
+        }
+        show(category, title, body, icon, color);
+    }
+
+    private static void show(String category, String title, String body, Icon icon, int color) {
+        Config.NotificationSettings n = Skycore.config().notifications;
         int c = n.accent == null || n.accent.isEmpty() ? color : Theme.parse(n.accent);
         toasts.add(new Toast(title, body, icon, c, System.currentTimeMillis(), n.duration));
         while (toasts.size() > 4) toasts.remove(0);

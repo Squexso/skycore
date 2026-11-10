@@ -1319,5 +1319,9 @@
   "share.tpl.major.3": "Ein ganz Großer ist geschafft: {milestone}. Nächstes Ziel: {next_goal}.",
   "share.tpl.report.1": "Fortschrittsbericht: {milestone}, noch {remaining} bis zum nächsten Level.",
   "share.tpl.report.2": "Aktuell bei {milestone}. Bisher {runs_total} Dungeon-Runs erfasst.",
-  "share.tpl.report.3": "Fortschritt von {player}: {milestone}. Noch {remaining}."
+  "share.tpl.report.3": "Fortschritt von {player}: {milestone}. Noch {remaining}.",
+  "notify.quiet": "Meldungen bei Runs und Kämpfen zurückhalten",
+  "notify.quiet_desc": "Meldungen warten, solange du in einem Dungeon-Run oder Slayer-Kampf bist, und erscheinen danach gesammelt.",
+  "notify.held.title": "{0} Meldungen, während du beschäftigt warst",
+  "notify.held.body": "Dein Run oder Kampf ist vorbei. Öffne SKYCORE, um zu sehen, was sich geändert hat."
 }

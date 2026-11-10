@@ -60,6 +60,16 @@ public final class ShareService implements Progress.Listener {
 
     public static void markDirty() { dirty = true; }
 
+    /** Restore the inbox and fired-milestone memory from a backup. */
+    public static void restore(com.google.gson.JsonElement json) {
+        ShareState s = Storage.GSON.fromJson(json, ShareState.class);
+        if (s == null) return;
+        s.normalize();
+        state = s;
+        inbox = new Inbox(state, t -> Minecraft.getInstance().keyboardHandler.setClipboard(t));
+        dirty = true;
+    }
+
     public static void saveIfDirty() {
         if (!dirty) return;
         dirty = false;
