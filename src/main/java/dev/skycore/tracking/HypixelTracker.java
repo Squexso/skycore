@@ -389,6 +389,7 @@ public final class HypixelTracker {
                 double gain = dev.skycore.data.SideXp.gainFromDelta(delta, s.gain(), s.need(), prevObs > 0 ? now - prevObs : 0);
                 Progress.recordGainOnly(def, gain);
                 dev.skycore.data.SideXp.onGain(def.id(), gain, now);
+                dev.skycore.data.Pace.recordGain(def.id(), gain, now);
                 log("xp", def.id(), gain, source, rule, conf, true);
                 debug(ev, rule, conf, "new", true, "verified_value", "progress");
             }
@@ -401,6 +402,7 @@ public final class HypixelTracker {
                 Progress.observePercent(def, s.percent());
                 Progress.recordGainOnly(def, s.gain());
                 dev.skycore.data.SideXp.onGain(def.id(), s.gain(), now);
+                dev.skycore.data.Pace.recordGain(def.id(), s.gain(), now);
                 log("xp", def.id(), s.gain(), source, rule, conf, true);
                 debug(ev, rule, conf, "new", true, "percent_value", "progress");
             }

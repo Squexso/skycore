@@ -129,7 +129,7 @@ public class GoalsPage implements Page {
         if (cur < 0) info = Lang.t("goals.unknown");
         else if (rem > 0) {
             Estimate.Range e = Estimate.forXp(def, p, rem);
-            info = Lang.t("goals.xp_to_go", Lang.compact(rem)) + (e != null ? " · " + e.format() + " " + e.unitLabel() : "");
+            info = Lang.t("goals.xp_to_go", Lang.compact(rem)) + (e != null ? " · " + etaText(e) : "");
         } else info = "";
         g.text(g.ellipsize(info, in.w() * 0.65f, 0.85f), in.x(), in.y() + 80, t.textMute(), 0.85f);
         if (!Progress.isSample()) g.textRight(Lang.t("goals.created", Widgets.ago(goal.created)), in.right(), in.y() + 80, t.textMute(), 0.85f, false);
@@ -148,6 +148,11 @@ public class GoalsPage implements Page {
                 Goals.changed();
             }
         } else g.icon(def.icon(), r.right() - 30, r.y() + 14, 14, c);
+    }
+
+    /** "about 1h 15m - 2h 30m"; a preliminary estimate already carries its own "~" and gets no lead-in. */
+    private static String etaText(Estimate.Range e) {
+        return e.preliminary() ? e.span() : Lang.t("goals.eta_about", e.span());
     }
 
     private void createCard(Ui ui, Rect r) {
