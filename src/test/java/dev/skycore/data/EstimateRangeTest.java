@@ -19,11 +19,11 @@ class EstimateRangeTest {
 
     @Test
     void orderedAndBounded() {
-        // wildly scattered rates: spread must stay within [0.5x .. 2x] of mid
+        // wildly scattered rates: spread must stay within [0.8x .. 1.25x] of mid
         Estimate.Range r = time(1_000_000, 100, 50_000, 20_000, 300_000, 800, 90_000);
         assertTrue(r.lo() <= r.mid() && r.mid() <= r.hi(), r.toString());
-        assertTrue(r.lo() >= r.mid() * 0.5 - 1, r.toString());
-        assertTrue(r.hi() <= r.mid() * 2 + 1, r.toString());
+        assertTrue(r.lo() >= r.mid() * 0.8 - 1, r.toString());
+        assertTrue(r.hi() <= r.mid() * 1.25 + 1, r.toString());
     }
 
     @Test
