@@ -18,6 +18,18 @@ class SideXpTest {
         assertTrue(SideXp.isCreatureLine("You've discovered a Guardian Defender of the sea."));
         assertTrue(SideXp.isCreatureLine("It looks like you've disrupted the Sea Witch's brewing session. Watch out, she's furious!"));
         assertTrue(SideXp.isCreatureLine("The Rider of the Deep has emerged."));
+        // the user's list of messages
+        String[] fromList = {"A Sea Archer appeared.", "The Monster of the Deep has surfaced!", "A Scarecrow appeared.",
+                "The Catfish swam to the surface!", "The Sea Leech rose from the depths!", "A Guardian Defender appeared.",
+                "Deep Sea Terror surfaced!", "The Water Hydra has awakened!", "The Emperor has appeared!", "A Nightmare surfaced!",
+                "It must be a full moon, it's a Werewolf!", "A Phantom Fisher appeared.", "The Grim Reaper has appeared!",
+                "Frozen Steve froze for ages, until now!", "Frosty the Snowman is throwing snowballs!",
+                "The Grinch is stealing your gifts!", "A Nurse Shark appeared.", "An Ice Golem appeared!", "The Yeti has awakened!",
+                "A Blue Shark appeared.", "A Tiger Shark appeared.", "Great White Shark appeared!", "Magma Slug surfaced!",
+                "Moogma emerged!", "A Lava Piranha appeared.", "A Lava Flame appeared.", "A Fire Eel appeared.", "Taurus appeared!",
+                "Thunder appeared!", "Lord Jawbus has awakened!", "A Water Worm surfaces!", "A Poisoned Water Worm surfaces!",
+                "An Abyssal Miner appeared."};
+        for (String line : fromList) assertTrue(SideXp.isCreatureLine(line), line);
     }
 
     @Test
