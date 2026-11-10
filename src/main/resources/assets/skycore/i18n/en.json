@@ -1323,5 +1323,20 @@
   "notify.quiet": "Hold alerts during runs and fights",
   "notify.quiet_desc": "Alerts wait while you are in a dungeon run or a slayer fight and appear together afterwards.",
   "notify.held.title": "{0} alerts while you were busy",
-  "notify.held.body": "Your run or fight is over. Open SKYCORE to see what changed."
+  "notify.held.body": "Your run or fight is over. Open SKYCORE to see what changed.",
+  "card.nextup": "Next up",
+  "nextup.empty": "Play a little. The levels closest to done show up here.",
+  "notify.cat.recap": "Last session recap",
+  "tip.notify.recap": "Once per game session: a short summary of your last play session.",
+  "notify.recap.title": "Last session",
+  "notify.recap.body": "{0} played, {1} XP gained.",
+  "notify.recap.body_ups": "{0} played, {1} XP gained, {2} level-ups.",
+  "notify.recap.body_short": "{0} played.",
+  "sessions.areas": "Time by area",
+  "sessions.areas_none": "No area time recorded in this period yet. It is collected while you play on SkyBlock.",
+  "sessions.timeline": "Level-ups and milestones",
+  "sessions.timeline_sub": "Newest first",
+  "sessions.timeline_none": "Nothing recorded yet. New level-ups and milestones appear here.",
+  "sessions.timeline.level": "Level",
+  "sessions.timeline.milestone": "Milestone"
 }

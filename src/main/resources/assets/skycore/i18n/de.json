@@ -1323,5 +1323,20 @@
   "notify.quiet": "Meldungen bei Runs und Kämpfen zurückhalten",
   "notify.quiet_desc": "Meldungen warten, solange du in einem Dungeon-Run oder Slayer-Kampf bist, und erscheinen danach gesammelt.",
   "notify.held.title": "{0} Meldungen, während du beschäftigt warst",
-  "notify.held.body": "Dein Run oder Kampf ist vorbei. Öffne SKYCORE, um zu sehen, was sich geändert hat."
+  "notify.held.body": "Dein Run oder Kampf ist vorbei. Öffne SKYCORE, um zu sehen, was sich geändert hat.",
+  "card.nextup": "Als Nächstes",
+  "nextup.empty": "Spiel ein wenig. Die Level, die am nächsten sind, erscheinen dann hier.",
+  "notify.cat.recap": "Rückblick auf die letzte Sitzung",
+  "tip.notify.recap": "Einmal pro Spielsitzung: eine kurze Zusammenfassung deiner letzten Sitzung.",
+  "notify.recap.title": "Letzte Sitzung",
+  "notify.recap.body": "{0} gespielt, {1} XP gewonnen.",
+  "notify.recap.body_ups": "{0} gespielt, {1} XP gewonnen, {2} Level-Ups.",
+  "notify.recap.body_short": "{0} gespielt.",
+  "sessions.areas": "Zeit pro Gebiet",
+  "sessions.areas_none": "In diesem Zeitraum wurde noch keine Gebietszeit erfasst. Sie wird beim Spielen auf SkyBlock gesammelt.",
+  "sessions.timeline": "Level-Ups und Meilensteine",
+  "sessions.timeline_sub": "Neueste zuerst",
+  "sessions.timeline_none": "Noch nichts erfasst. Neue Level-Ups und Meilensteine erscheinen hier.",
+  "sessions.timeline.level": "Level",
+  "sessions.timeline.milestone": "Meilenstein"
 }

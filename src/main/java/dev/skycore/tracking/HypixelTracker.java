@@ -756,7 +756,7 @@ public final class HypixelTracker {
         lastX = x; lastZ = z; lastYaw = yaw; lastPitch = pitch;
         if (++secondTicks >= 20) {
             secondTicks = 0;
-            if (onSkyBlock && System.currentTimeMillis() - lastInput < 180_000) SessionLog.addPlaySeconds(1);
+            if (onSkyBlock && System.currentTimeMillis() - lastInput < 180_000) { SessionLog.addPlaySeconds(1); SessionLog.addAreaSeconds(area, 1); }
         }
     }
 

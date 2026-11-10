@@ -52,6 +52,9 @@ public final class DevCapture {
         SHOTS.add(new Shot("real_profiles", () -> { realDemo(); return scrolled(7, 1560); }));
         SHOTS.add(new Shot("real_datatrack", () -> { realDemo(); return scrolled(7, 840); }));
         for (int y : new int[]{700, 1400, 1750, 2100, 2800}) SHOTS.add(new Shot("share_" + y, () -> scrolled(7, y)));
+        SHOTS.add(new Shot("overview_bottom", () -> scrolled(0, 1150)));
+        SHOTS.add(new Shot("notifications_top", () -> scrolled(6, 160)));
+        SHOTS.add(new Shot("real_sessions_areas", () -> { realDemo(); SkycoreScreen s = new SkycoreScreen(3); ((SessionsPage) s.page(3)).setView(0, 0); pendingPage = 3; pendingScroll = 1000; return s; }));
         SHOTS.add(new Shot("hud_editor", () -> new HudEditorScreen(null)));
         String only = System.getProperty("skycore.capture.only", "");
         if (!only.isEmpty()) {
@@ -130,6 +133,13 @@ public final class DevCapture {
         dev.skycore.data.Progress.identify("Apple", "00000000-demo-0000-0000-000000000000", "chat");
         for (int i = 0; i < 900; i++) dev.skycore.data.SessionLog.addPlaySeconds(1);
         dev.skycore.data.SessionLog.record(mining, 6_100);
+        // demo data for "time by area" and the milestone timeline (screenshot run only)
+        String[] areas = {"Crystal Hollows", "Dwarven Mines", "Hub", "The Catacombs"};
+        int[] secs = {900, 600, 240, 180};
+        for (int a = 0; a < areas.length; a++) for (int i = 0; i < secs[a]; i++) dev.skycore.data.SessionLog.addAreaSeconds(areas[a], 1);
+        dev.skycore.data.History.event("Apple", "level", "skill_mining", 56, "chat", "demo", 0.9, true);
+        dev.skycore.data.History.event("Apple", "milestone", "hotm", 8, "chat", "demo", 0.9, true);
+        dev.skycore.data.History.event("Apple", "level", "catacombs", 40, "chat", "demo", 0.9, true);
         dev.skycore.tracking.DebugLog.problem("quest_unclassified", "evidence.no_tier");
         dev.skycore.tracking.DebugLog.problem("reconcile_ambiguous", "slayer:enderman");
     }
