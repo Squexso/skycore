@@ -1372,5 +1372,12 @@
   "rep.lt_day": "under 1 day",
   "rep.day": "about 1 day",
   "rep.days": "about {0} days",
-  "rep.days_range": "about {0}–{1} days"
+  "rep.days_range": "about {0}–{1} days",
+  "hud.widget.meters": "Meters",
+  "hud.line.fps": "FPS",
+  "hud.line.tps": "Server TPS",
+  "hud.line.ping": "Ping",
+  "hud.line.memory": "Memory use",
+  "hud.line.coords": "Coordinates",
+  "hud.line.labels": "Show labels"
 }

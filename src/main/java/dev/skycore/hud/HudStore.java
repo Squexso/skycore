@@ -13,7 +13,7 @@ import java.util.Map;
 
 /** HUD layouts: multiple named profiles, persisted to hud.json, shareable as a clipboard string. */
 public final class HudStore {
-    public static final String[] WIDGETS = {"catacombs", "skill", "slayer", "session", "goals", "reputation"};
+    public static final String[] WIDGETS = {"catacombs", "skill", "slayer", "session", "goals", "reputation", "meters"};
     private static final String EXPORT_PREFIX = "SKYCORE-HUD:";
 
     public static class WidgetState {
@@ -100,6 +100,10 @@ public final class HudStore {
         WidgetState rep = make("reputation", 0.80f, 0.55f, true);
         rep.visibility = "auto"; // only while reputation is being earned
         l.add(rep);
+        WidgetState meters = make("meters", 0.45f, 0.01f, true);
+        meters.showTitle = false;
+        meters.lines.put("labels", false); // numbers only unless asked for
+        l.add(meters);
         return l;
     }
 

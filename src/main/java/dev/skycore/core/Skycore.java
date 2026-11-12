@@ -133,6 +133,7 @@ public final class Skycore {
             LOG.info("SKYCORE startup: integrity check on first tick ({} ms)", (System.nanoTime() - t) / 1_000_000);
         }
         HypixelTracker.tick(mc);
+        dev.skycore.hud.Meters.tick(mc);
         DevCapture.tick(mc);
         DevStress.tick(mc);
         for (Runnable r; (r = LATER.poll()) != null; ) {

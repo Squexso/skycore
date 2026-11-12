@@ -41,7 +41,7 @@ public final class HudWidgets {
             case "skill" -> Icon.SKILLS;
             case "slayer" -> Icon.SLAYER;
             case "session" -> Icon.CLOCK;
-            case "reputation" -> Icon.SPARK;
+            case "reputation", "meters" -> Icon.SPARK;
             default -> Icon.GOALS;
         };
     }
@@ -54,6 +54,7 @@ public final class HudWidgets {
             case "slayer" -> new String[]{"remaining", "rate", "eta"};
             case "session" -> new String[]{"time", "xp", "rate", "pace"};
             case "reputation" -> new String[]{"rep_left", "rep_today", "rep_eta"};
+            case "meters" -> new String[]{"fps", "tps", "ping", "memory", "coords", "labels"};
             default -> new String[]{"bars", "eta"};
         };
     }
@@ -141,6 +142,9 @@ public final class HudWidgets {
             case "reputation" -> {
                 return reputation(lines, t);
             }
+            case "meters" -> {
+                return meters(lines, t);
+            }
             case "session" -> {
                 SessionLog.Totals tt = SessionLog.totals(SessionLog.range(SessionLog.Period.TODAY));
                 double h = tt.playMillis() / 3600_000.0;
@@ -183,6 +187,21 @@ public final class HudWidgets {
                 return new Content(Lang.t("hud.widget.goals"), Icon.GOALS, -1, null, rows);
             }
         }
+    }
+
+    private static int meterColor(Theme t, int cls) { return cls == 0 ? t.success() : cls == 1 ? t.warning() : t.danger(); }
+
+    /** Numbers-only readouts (no box): each one can be switched off, labels are optional. */
+    private static Content meters(WidgetLines lines, Theme t) {
+        List<Row> rows = new ArrayList<>();
+        Minecraft mc = Minecraft.getInstance();
+        boolean lb = lines.w() != null && lines.w().line("labels");
+        if (lines.on("fps")) { int v = Meters.fps(mc); rows.add(new Row(lb ? "FPS" : "", String.valueOf(v), meterColor(t, Meters.fpsClass(v)), -1)); }
+        if (lines.on("tps")) { double v = Meters.tps(); if (v >= 0) rows.add(new Row(lb ? "TPS" : "", Meters.tpsText(v), meterColor(t, Meters.tpsClass(v)), -1)); }
+        if (lines.on("ping")) { int v = Meters.ping(mc); if (v >= 0) rows.add(new Row(lb ? "Ping" : "", String.valueOf(v), meterColor(t, Meters.pingClass(v)), -1)); }
+        if (lines.on("memory")) { int v = Meters.memoryPercent(); rows.add(new Row(lb ? "RAM" : "", v + "%", meterColor(t, Meters.memoryClass(v)), -1)); }
+        if (lines.on("coords") && mc.player != null) rows.add(new Row(lb ? "XYZ" : "", mc.player.getBlockX() + " " + mc.player.getBlockY() + " " + mc.player.getBlockZ(), 0, -1));
+        return new Content("", Icon.SPARK, -1, null, rows);
     }
 
     /** Crimson Isle reputation box: level bar, reputation left, gained today and the estimate in play days. */
@@ -284,7 +303,14 @@ public final class HudWidgets {
     }
 
     // ------------------------------------------------------------------ layout & drawing (units = GUI pixels)
+    private static String meterText(Row r) { return r.label().isEmpty() ? r.value() : r.label() + " " + r.value(); }
+
     public static Rect measure(HudStore.WidgetState st, Content c) {
+        if ("meters".equals(st.id)) {
+            float ts0 = st.textScale <= 0 ? 1 : st.textScale, w0 = 8, h0 = 0;
+            for (Row r : c.rows()) { w0 = Math.max(w0, Gfx.measure(meterText(r), false) * ts0); h0 += 9 * ts0 + st.spacing; }
+            return new Rect(0, 0, (w0 + 2) * st.scale, Math.max(9 * ts0, h0 - st.spacing + 1) * st.scale);
+        }
         float pad = st.padding, ts = st.textScale <= 0 ? 1 : st.textScale;
         float w = 0;
         if (st.showTitle) w = Gfx.measure(title(st, c), true) * ts + (st.showIcon ? 13 * ts : 0) + (c.barLabel() != null ? Gfx.measure(c.barLabel(), false) * 0.8f * ts + 10 : 0);
@@ -299,6 +325,7 @@ public final class HudWidgets {
     }
 
     public static void draw(Gfx g, HudStore.WidgetState st, Content c, float x, float y) {
+        if ("meters".equals(st.id)) { drawMeters(g, st, c, x, y); return; }
         Theme t = Theme.get();
         Rect size = measure(st, c);
         float ts = st.textScale <= 0 ? 1 : st.textScale;
@@ -339,6 +366,24 @@ public final class HudWidgets {
             cy += 9 * ts;
             if (r.bar() >= 0) { bar(g, new Rect(pad, cy, w - pad * 2, 3), r.bar(), accent, t); cy += 5; }
             cy += st.spacing;
+        }
+        g.pop();
+    }
+
+    /** Plain coloured numbers with a soft shadow, no background, border or title. */
+    private static void drawMeters(Gfx g, HudStore.WidgetState st, Content c, float x, float y) {
+        Theme t = Theme.get();
+        float ts = st.textScale <= 0 ? 1 : st.textScale;
+        g.push();
+        g.translate(x, y);
+        g.g.pose().scale(st.scale, st.scale);
+        float cy = 0;
+        for (Row r : c.rows()) {
+            String s = meterText(r);
+            int col = r.color() != 0 ? r.color() : Theme.parse(st.text);
+            g.text(s, 0.6f, cy + 0.6f, Col.alpha(0xFF000000, 0.75f * st.opacity), ts);
+            g.text(s, 0, cy, col, ts);
+            cy += 9 * ts + st.spacing;
         }
         g.pop();
     }
