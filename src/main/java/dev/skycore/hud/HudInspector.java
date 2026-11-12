@@ -67,7 +67,43 @@ public final class HudInspector {
     }
 
     // ------------------------------------------------------------------ appearance
+    /** Appearance of a single readout: size, opacity and colours (by value, or one plain colour). */
+    private float meterLook(Ui ui, Rect r, float y, HudStore.WidgetState w) {
+        Theme t = ui.t;
+        Ui.Section s = ui.beginSection("hud.look", r.x(), y, r.w(), Lang.t("hud.section.look"), null, null, true);
+        float cy = s.contentY();
+        if (s.visible()) {
+            float sc = ui.sliderRow("hi#scale", new Rect(s.x(), cy, s.w(), 30), Lang.t("hud.scale"), w.scale, 0.5f, 3f, 0.05f, Lang.percent(w.scale), Lang.t("tip.hud_scale"));
+            cy += 34;
+            float tsc = ui.sliderRow("hi#ts", new Rect(s.x(), cy, s.w(), 30), Lang.t("hud.text_size"), w.textScale, 0.6f, 1.8f, 0.05f, Lang.percent(w.textScale), Lang.t("tip.hud_text"));
+            cy += 34;
+            float op = ui.sliderRow("hi#op", new Rect(s.x(), cy, s.w(), 30), Lang.t("hud.opacity"), w.opacity, 0.2f, 1f, 0.05f, Lang.percent(w.opacity), Lang.t("tip.hud_opacity"));
+            cy += 36;
+            boolean changed = sc != w.scale || tsc != w.textScale || op != w.opacity;
+            w.scale = sc; w.textScale = tsc; w.opacity = op;
+            boolean auto = ui.toggleRow("hi#auto", new Rect(s.x() - 8, cy, s.w() + 8, 22), Lang.t("hud.color_by_value"), null, w.autoColor, Lang.t("tip.hud_color_by_value"));
+            if (auto != w.autoColor) { w.autoColor = auto; changed = true; }
+            cy += 26;
+            ui.caption(Lang.t("hud.colors"), s.x(), cy);
+            cy += 13;
+            String[] keys = w.autoColor && !"m_xyz".equals(w.id) ? new String[]{"good", "mid", "bad"} : new String[]{"text"};
+            Rect[] cols = new Rect(s.x(), cy, s.w(), 32).columns(keys.length, 8);
+            for (int i = 0; i < keys.length; i++) {
+                ui.g.text(Lang.t("hud.color." + keys[i]), cols[i].x(), cols[i].y(), t.textDim(), 0.85f);
+                if (Widgets.swatch(ui, "hi#sw" + keys[i], new Rect(cols[i].x(), cols[i].y() + 11, cols[i].w(), 16), color(w, keys[i], t))) {
+                    picking = keys[i];
+                    Widgets.resetPicker(ui, "hpick" + keys[i]);
+                    ui.resetModalAnim();
+                }
+            }
+            cy += 38;
+            if (changed) HudStore.changed();
+        }
+        return ui.endSection(s, cy);
+    }
+
     private float look(Ui ui, Rect r, float y, HudStore.WidgetState w) {
+        if (HudWidgets.isMeter(w.id)) return meterLook(ui, r, y, w);
         Theme t = ui.t;
         Ui.Section s = ui.beginSection("hud.look", r.x(), y, r.w(), Lang.t("hud.section.look"), null, null, false);
         float cy = s.contentY();
@@ -158,6 +194,9 @@ public final class HudInspector {
         int resetTo = switch (key) {
             case "background" -> Theme.parse(def.background);
             case "text" -> Theme.parse(def.text);
+            case "good" -> t.success();
+            case "mid" -> t.warning();
+            case "bad" -> t.danger();
             default -> t.primary();
         };
         ui.modal(modalArea, 400, 350, Lang.t("hud.pick", Lang.t("hud.color." + key)), body -> {
@@ -172,6 +211,9 @@ public final class HudInspector {
         return switch (key) {
             case "background" -> Theme.parse(w.background);
             case "text" -> Theme.parse(w.text);
+            case "good" -> w.colorGood == null || w.colorGood.isEmpty() ? t.success() : Theme.parse(w.colorGood);
+            case "mid" -> w.colorMid == null || w.colorMid.isEmpty() ? t.warning() : Theme.parse(w.colorMid);
+            case "bad" -> w.colorBad == null || w.colorBad.isEmpty() ? t.danger() : Theme.parse(w.colorBad);
             default -> w.accent == null || w.accent.isEmpty() ? t.primary() : Theme.parse(w.accent);
         };
     }
@@ -180,6 +222,9 @@ public final class HudInspector {
         switch (key) {
             case "background" -> w.background = Theme.hex(c);
             case "text" -> w.text = Theme.hex(c);
+            case "good" -> w.colorGood = Theme.hex(c);
+            case "mid" -> w.colorMid = Theme.hex(c);
+            case "bad" -> w.colorBad = Theme.hex(c);
             default -> w.accent = Theme.hex(c);
         }
     }

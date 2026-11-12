@@ -1379,5 +1379,15 @@
   "hud.line.ping": "Ping",
   "hud.line.memory": "Memory use",
   "hud.line.coords": "Coordinates",
-  "hud.line.labels": "Show labels"
+  "hud.line.labels": "Show labels",
+  "hud.widget.m_fps": "FPS",
+  "hud.widget.m_tps": "Server TPS",
+  "hud.widget.m_ping": "Ping",
+  "hud.widget.m_ram": "Memory",
+  "hud.widget.m_xyz": "Coordinates",
+  "hud.color.good": "Good",
+  "hud.color.mid": "Medium",
+  "hud.color.bad": "Bad",
+  "hud.color_by_value": "Colour by value",
+  "tip.hud_color_by_value": "Colours the number by how good it is. Off: one plain colour (set under Text)."
 }
