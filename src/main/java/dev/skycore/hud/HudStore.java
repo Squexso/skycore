@@ -13,7 +13,7 @@ import java.util.Map;
 
 /** HUD layouts: multiple named profiles, persisted to hud.json, shareable as a clipboard string. */
 public final class HudStore {
-    public static final String[] WIDGETS = {"catacombs", "skill", "slayer", "session", "goals", "reputation", "meters"};
+    public static final String[] WIDGETS = {"catacombs", "skill", "slayer", "session", "goals", "reputation", "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz"};
     private static final String EXPORT_PREFIX = "SKYCORE-HUD:";
 
     public static class WidgetState {
@@ -38,6 +38,10 @@ public final class HudStore {
         /** When the widget is shown: always, dungeon, mining. */
         public String visibility = "auto";
         public Map<String, Boolean> lines = new LinkedHashMap<>();
+        /** Readout widgets only: colour the number by how good it is. Off = one plain colour (text). */
+        public boolean autoColor = true;
+        /** Readout colours for good / medium / bad values; empty = theme colour. */
+        public String colorGood = "", colorMid = "", colorBad = "";
 
         public WidgetState copy() {
             WidgetState w = Storage.GSON.fromJson(Storage.GSON.toJson(this), WidgetState.class);
@@ -75,8 +79,9 @@ public final class HudStore {
 
     private static void normalize(List<WidgetState> list) {
         List<WidgetState> def = defaults();
+        list.removeIf(w -> w.id != null && "meters".equals(w.id));
         for (WidgetState d : def) if (list.stream().noneMatch(w -> d.id.equals(w.id))) list.add(d);
-        list.removeIf(w -> w.id == null);
+        list.removeIf(w -> w.id == null || "meters".equals(w.id)); // "meters" was one box, now five separate readouts
         for (WidgetState w : list) {
             if (w.lines == null) w.lines = new LinkedHashMap<>();
             w.x = Math.max(0, Math.min(0.98f, w.x));
@@ -100,10 +105,13 @@ public final class HudStore {
         WidgetState rep = make("reputation", 0.80f, 0.55f, true);
         rep.visibility = "auto"; // only while reputation is being earned
         l.add(rep);
-        WidgetState meters = make("meters", 0.45f, 0.01f, true);
-        meters.showTitle = false;
-        meters.lines.put("labels", false); // numbers only unless asked for
-        l.add(meters);
+        String[] ids = {"m_fps", "m_tps", "m_ping", "m_ram", "m_xyz"};
+        for (int i = 0; i < ids.length; i++) { // plain numbers, one under the other; every one can be moved or switched off
+            WidgetState m = make(ids[i], 0.45f, 0.01f + 0.045f * i, true);
+            m.opacity = 1f;
+            m.visibility = "always";
+            l.add(m);
+        }
         return l;
     }
 
