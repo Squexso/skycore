@@ -671,7 +671,7 @@
   "settings.clear_history": "Clear history",
   "settings.confirm_history": "Delete the event log, correction log and snapshots? Your current levels, runs and goals are kept.",
   "settings.status_legend": "Data status",
-  "settings.fair_play": "SKYCORE only reads what the game already shows you. It never sends input, opens menus, clicks, or uses the Hypixel API.",
+  "settings.fair_play": "SKYCORE only reads what the game already shows you. It never sends input, opens menus, clicks, or uses the Hypixel API. Only the optional ping readout sends a tiny vanilla ping request (like the F3+3 chart) and can be switched off.",
   "source.scoreboard": "Sidebar",
   "source.tab": "Tab list",
   "status.verified": "Verified",
@@ -1389,5 +1389,6 @@
   "hud.color.mid": "Medium",
   "hud.color.bad": "Bad",
   "hud.color_by_value": "Colour by value",
-  "tip.hud_color_by_value": "Colours the number by how good it is. Off: one plain colour (set under Text)."
+  "tip.hud_color_by_value": "Colours the number by how good it is. Off: one plain colour (set under Text).",
+  "hud.line.realping": "Measure real ping (sends a vanilla ping packet)"
 }

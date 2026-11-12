@@ -54,7 +54,8 @@ public final class HudWidgets {
             case "slayer" -> new String[]{"remaining", "rate", "eta"};
             case "session" -> new String[]{"time", "xp", "rate", "pace"};
             case "reputation" -> new String[]{"rep_left", "rep_today", "rep_eta"};
-            case "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz" -> new String[]{"labels"};
+            case "m_ping" -> new String[]{"labels", "realping"};
+            case "m_fps", "m_tps", "m_ram", "m_xyz" -> new String[]{"labels"};
             default -> new String[]{"bars", "eta"};
         };
     }

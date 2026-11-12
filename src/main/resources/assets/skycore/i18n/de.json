@@ -671,7 +671,7 @@
   "settings.clear_history": "Verlauf löschen",
   "settings.confirm_history": "Ereignisprotokoll, Korrekturen und Momentaufnahmen löschen? Aktuelle Level, Runs und Ziele bleiben erhalten.",
   "settings.status_legend": "Datenstatus",
-  "settings.fair_play": "SKYCORE liest nur, was das Spiel dir ohnehin anzeigt. Es sendet keine Eingaben, öffnet keine Menüs, klickt nicht und nutzt nicht die Hypixel-API.",
+  "settings.fair_play": "SKYCORE liest nur, was das Spiel dir ohnehin anzeigt. Es sendet keine Eingaben, öffnet keine Menüs, klickt nicht und nutzt nicht die Hypixel-API. Nur die optionale Ping-Anzeige schickt eine winzige Vanilla-Ping-Anfrage (wie die F3+3-Grafik) und lässt sich abschalten.",
   "source.scoreboard": "Seitenleiste",
   "source.tab": "Tab-Liste",
   "status.verified": "Bestätigt",
@@ -1389,5 +1389,6 @@
   "hud.color.mid": "Mittel",
   "hud.color.bad": "Schlecht",
   "hud.color_by_value": "Farbe nach Wert",
-  "tip.hud_color_by_value": "Färbt die Zahl danach, wie gut der Wert ist. Aus: eine feste Farbe (unter Text einstellbar)."
+  "tip.hud_color_by_value": "Färbt die Zahl danach, wie gut der Wert ist. Aus: eine feste Farbe (unter Text einstellbar).",
+  "hud.line.realping": "Echten Ping messen (sendet ein Vanilla-Ping-Paket)"
 }

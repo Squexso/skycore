@@ -14,7 +14,7 @@ class MeterWidgetsTest {
             assertTrue(HudWidgets.isMeter(id));
             assertTrue(w.enabled);
             assertTrue(w.autoColor);
-            assertArrayEquals(new String[]{"labels"}, HudWidgets.lineKeys(id));
+            assertEquals("labels", HudWidgets.lineKeys(id)[0]);
         }
         assertTrue(d.stream().noneMatch(x -> "meters".equals(x.id)));
         assertFalse(HudWidgets.isMeter("skill"));
