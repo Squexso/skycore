@@ -1,7 +1,6 @@
 package dev.skycore.hud;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.PlayerInfo;
 
 import java.util.ArrayDeque;
 
@@ -61,21 +60,43 @@ public final class Meters {
 
     /** Client tick: feeds the TPS estimate. */
     public static void tick(Minecraft mc) {
-        if (mc.level == null) { lastLevel = null; TPS.reset(); return; }
+        if (mc.level == null) { lastLevel = null; TPS.reset(); lastPing = -1; return; }
         if (mc.level != lastLevel) { lastLevel = mc.level; TPS.reset(); }
         TPS.observe(mc.level.getGameTime(), System.nanoTime());
+        pingTick(mc);
     }
 
     public static double tps() { return TPS.value(System.nanoTime()); }
 
     public static int fps(Minecraft mc) { return mc.getFps(); }
 
-    /** Own latency in ms, or -1 when unknown (singleplayer, not in a world yet, or no measurement yet). */
-    public static int ping(Minecraft mc) {
+    // ---- ping: Hypixel fills the tab-list latency with a fixed dummy value, so the real round trip is measured instead.
+    // This is the one thing SKYCORE sends: the same tiny vanilla ping request the F3+3 network chart uses, every 5 seconds,
+    // only while the ping readout is switched on. The game files the answer in the debug overlay's ping logger.
+    static final long PING_EVERY_MS = 5000, PING_FRESH_MS = 20_000;
+    private static long nextPingAt, lastPingAt;
+    private static int lastPing = -1;
+
+    private static void pingTick(Minecraft mc) {
+        long now = System.currentTimeMillis();
+        HudStore.WidgetState w = HudStore.widget("m_ping");
         var conn = mc.getConnection();
-        if (conn == null || mc.player == null) return -1;
-        PlayerInfo info = conn.getPlayerInfo(mc.player.getUUID());
-        return info == null || info.getLatency() <= 0 ? -1 : info.getLatency();
+        if (w == null || !w.enabled || !w.line("realping") || conn == null || mc.level == null) { lastPing = -1; return; }
+        var log = mc.getDebugOverlay().getPingLogger();
+        if (log.size() > 0) {
+            long v = log.get(log.size() - 1);
+            if (v > 0 && v < 30_000) { lastPing = (int) v; lastPingAt = now; }
+            log.reset();
+        }
+        if (now >= nextPingAt) {
+            nextPingAt = now + PING_EVERY_MS;
+            conn.send(new net.minecraft.network.protocol.ping.ServerboundPingRequestPacket(net.minecraft.util.Util.getMillis()));
+        }
+    }
+
+    /** Measured round trip in ms, or -1 when there is no fresh measurement (switched off, not answered, not in a world). */
+    public static int ping(Minecraft mc) {
+        return System.currentTimeMillis() - lastPingAt > PING_FRESH_MS ? -1 : lastPing;
     }
 
     /** Used heap in percent of the maximum. */

@@ -24,7 +24,7 @@ SKYCORE is a small overlay that sits next to your game. It reads what Hypixel Sk
 (chat, the sidebar, the tab list and menus you open yourself) and turns it into something you can actually
 use: levels, progress, history, goals and estimates in one clean window.
 
-It is **passive**. It never sends commands, never clicks for you and never opens menus.
+It is **passive**. It never sends commands, never clicks for you and never opens menus. The single exception is the optional ping readout: it sends the same tiny vanilla ping request as the F3+3 network chart (every 5 seconds, only while that readout is on) and can be switched off.
 It also needs **no API key** and talks to no external service.
 
 ## 🎯 Features
