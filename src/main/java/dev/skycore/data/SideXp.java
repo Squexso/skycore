@@ -169,7 +169,22 @@ public final class SideXp {
             "A Great White Shark attacks from the deep!",
             "A Jumpin' Jack springs up from the hotspot!",
             "A Fiery Scuttler skitters across the magma!",
-            "The legendary Wiki Tiki has been summoned!"
+            "The legendary Wiki Tiki has been summoned!",
+            // Lotus Atoll, hotspot and event lines seen in real logs (Nov 2026)
+            "An inquisitive Atoll Croaker takes the bait!",
+            "A Lotus Guardian emerges, ready to protect the Atoll.",
+            "What even is that?! A... gorF?",
+            "A Drowned Captain takes hold of your bobber!",
+            "A Puddle Jumper is preparing for liftoff—cast your rod into it and hold on tight!",
+            "Watch out! It's Jumpin' Jack.",
+            "Phew! It's only a Scarecrow.",
+            // Backwater Bayou and Lotus Atoll lines from the SkyBlock wiki (not yet seen in own logs)
+            "A long snout breaks the surface of the water. It's an Alligator!",
+            "The desolate wail of a Banshee breaks the silence.",
+            "The Trash Gobbler is hungry for you!",
+            "A Dumpster Diver has emerged from the swamp!",
+            "A massive Titanoboa surfaces. Its body stretches as far as the eye can see.",
+            "Bow down before the Frog Prince... or pay the hefty price!"
     };
 
     private static String exactAlternation() {
