@@ -1441,5 +1441,6 @@
   "hud.widget.music": "Läuft gerade",
   "hud.line.music_artist": "Künstler",
   "hud.line.music_status": "Hinweis Pause / Laden",
-  "music.paused": "Pausiert"
+  "music.paused": "Pausiert",
+  "music.resumed": "Weiter"
 }

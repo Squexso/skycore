@@ -6,5 +6,7 @@
   "key.skycore.toggle_hud": "HUD ein- oder ausblenden",
   "key.skycore.music_toggle": "Musik: Pause oder Fortsetzen",
   "key.skycore.music_next": "Musik: nächster Song",
-  "key.skycore.music_prev": "Musik: vorheriger Song"
+  "key.skycore.music_prev": "Musik: vorheriger Song",
+  "key.skycore.music_vol_up": "Musik: lauter",
+  "key.skycore.music_vol_down": "Musik: leiser"
 }

@@ -1441,5 +1441,6 @@
   "hud.widget.music": "Now playing",
   "hud.line.music_artist": "Artist",
   "hud.line.music_status": "Paused / loading note",
-  "music.paused": "Paused"
+  "music.paused": "Paused",
+  "music.resumed": "Playing"
 }
