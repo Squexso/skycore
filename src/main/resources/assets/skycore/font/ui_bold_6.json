@@ -1,5 +1,6 @@
 {
   "providers": [
-    { "type": "ttf", "file": "skycore:manrope-bold.ttf", "shift": [0, 0.5], "size": 9.5, "oversample": 6.0 }
+    { "type": "ttf", "file": "skycore:manrope-bold.ttf", "shift": [0, 0.5], "size": 9.5, "oversample": 6.0 },
+    { "type": "reference", "id": "minecraft:include/unifont" }
   ]
 }

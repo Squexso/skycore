@@ -3,5 +3,8 @@
   "key.skycore.open": "SKYCORE öffnen",
   "key.skycore.hud_editor": "HUD-Editor öffnen",
   "key.skycore.copy_share": "Letzte Teilen-Nachricht kopieren",
-  "key.skycore.toggle_hud": "HUD ein- oder ausblenden"
+  "key.skycore.toggle_hud": "HUD ein- oder ausblenden",
+  "key.skycore.music_toggle": "Musik: Pause oder Fortsetzen",
+  "key.skycore.music_next": "Musik: nächster Song",
+  "key.skycore.music_prev": "Musik: vorheriger Song"
 }
