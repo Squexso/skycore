@@ -270,8 +270,8 @@ public final class HudWidgets {
             if (cur == null) { rows.add(new Row(Lang.t("hud.status"), Lang.t("music.nothing_playing"), t.textDim(), -1)); return new Content(Lang.t("hud.widget.music"), Icon.SOUND, -1, null, rows); }
             title = cur.title; artist = cur.artist; pos = pl.positionMs(); dur = pl.durationMs(); st = pl.status();
         }
-        if (title.length() > 30) title = title.substring(0, 29) + "…";
-        if (lines.on("music_artist") && !artist.isEmpty()) rows.add(new Row("", artist.length() > 30 ? artist.substring(0, 29) + "…" : artist, t.textDim(), -1));
+        if (title.length() > 15) title = title.substring(0, 14) + "…"; // a compact box can be moved to every screen edge
+        if (lines.on("music_artist") && !artist.isEmpty()) rows.add(new Row("", artist.length() > 18 ? artist.substring(0, 17) + "…" : artist, t.textDim(), -1));
         if (lines.on("music_status") && st != dev.skycore.music.Player.Status.PLAYING)
             rows.add(new Row("", Lang.t(st == dev.skycore.music.Player.Status.PAUSED ? "music.paused" : "music.loading"), t.textDim(), -1));
         float frac = dur > 0 ? Math.max(0, Math.min(1, pos / (float) dur)) : -1;
