@@ -6,10 +6,29 @@ version = project.mod_version
 group = project.maven_group
 base { archivesName = project.archives_base_name }
 
+repositories {
+    mavenCentral()
+    // LavaPlayer (audio decoding for the Music tab) is published here, not on Maven Central
+    maven { url = 'https://maven.lavalink.dev/releases'; content { includeGroup 'dev.arbjerg' } }
+}
+
+// Music tab: LavaPlayer decodes the streams. What Minecraft already ships (slf4j, commons-io, commons-codec, gson) is left out,
+// and the YouTube-only script engine is not needed, so only the rest travels inside the mod jar.
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    implementation("dev.arbjerg:lavaplayer:2.2.7") {
+        exclude group: 'org.mozilla'; exclude group: 'org.slf4j'; exclude group: 'commons-io'; exclude group: 'commons-codec'; exclude group: 'org.jetbrains'
+    }
+    // `include` does not follow transitive dependencies, so everything LavaPlayer needs at runtime is listed
+    [
+        "dev.arbjerg:lavaplayer:2.2.7", "dev.arbjerg:lava-common:2.2.7", "dev.arbjerg:lavaplayer-natives:2.2.7",
+        "org.apache.httpcomponents:httpclient:4.5.14", "org.apache.httpcomponents:httpcore:4.4.16", "commons-logging:commons-logging:1.2",
+        "org.jsoup:jsoup:1.16.1", "net.iharder:base64:2.3.9", "org.json:json:20240303",
+        "com.fasterxml.jackson.core:jackson-core:2.15.2", "com.fasterxml.jackson.core:jackson-databind:2.15.2", "com.fasterxml.jackson.core:jackson-annotations:2.15.2"
+    ].each { include(it) }
 
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.11.4"

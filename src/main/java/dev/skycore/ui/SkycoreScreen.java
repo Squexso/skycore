@@ -11,6 +11,7 @@ import dev.skycore.ui.gfx.Gfx;
 import dev.skycore.ui.gfx.Icon;
 import dev.skycore.ui.pages.AppearancePage;
 import dev.skycore.ui.pages.GoalsPage;
+import dev.skycore.ui.pages.MusicPage;
 import dev.skycore.ui.pages.HudStudioPage;
 import dev.skycore.ui.pages.SharePage;
 import dev.skycore.ui.pages.NotificationsPage;
@@ -36,9 +37,9 @@ public class SkycoreScreen extends net.minecraft.client.gui.screens.Screen {
     private static final float HEADER = 46;
 
     private final Ui ui = new Ui();
-    private final Page[] pages = {new OverviewPage(), new ProgressionPage(), new HudStudioPage(), new SessionsPage(), new GoalsPage(),
+    private final Page[] pages = {new OverviewPage(), new ProgressionPage(), new HudStudioPage(), new SessionsPage(), new GoalsPage(), new MusicPage(),
             new AppearancePage(), new NotificationsPage(), new SharePage(), new SettingsPage()};
-    private static final int MAIN_PAGES = 5;
+    private static final int MAIN_PAGES = 6;
     private int page;
     private final float[] contentHeights = new float[pages.length];
 
@@ -209,7 +210,10 @@ public class SkycoreScreen extends net.minecraft.client.gui.screens.Screen {
         Rect content = new Rect(wx + sideW, wy, ww - sideW, wh);
         drawHeader(content.top(HEADER));
         Rect view = new Rect(content.x() + 1, content.y() + HEADER, content.w() - 2, content.h() - HEADER - 1);
-        float off = ui.scroll("page" + page, view.inset(0, 0), contentHeights[page] + 16);
+        // a page that fits does not scroll, so the wheel stays free for lists inside the page (the music tab)
+        float off = 0;
+        if (contentHeights[page] + 16 > view.h() + 0.5f) off = ui.scroll("page" + page, view.inset(0, 0), contentHeights[page] + 16);
+        else ui.resetScroll("page" + page);
         ui.pushClip(view);
         float ak = Theme.get().animIntensity;
         float pa = ak >= 0.05f ? ease(Math.min(1, (System.currentTimeMillis() - pageSwitchedAt) / (220f * ak))) : 1;
@@ -310,7 +314,7 @@ public class SkycoreScreen extends net.minecraft.client.gui.screens.Screen {
         g.circle(lx + 10, r.y() + 26, 3.2f, t.text());
         if (!compact) g.text("SKYCORE", lx + 28, r.y() + 21, t.text(), 1.15f, dev.skycore.ui.gfx.Gfx.Weight.SEMIBOLD);
         float y = r.y() + 58;
-        String[] keys = {"nav.overview", "nav.progression", "nav.hud", "nav.sessions", "nav.goals", "nav.appearance", "nav.notifications", "nav.share", "nav.settings"};
+        String[] keys = {"nav.overview", "nav.progression", "nav.hud", "nav.sessions", "nav.goals", "nav.music", "nav.appearance", "nav.notifications", "nav.share", "nav.settings"};
         for (int i = 0; i < pages.length; i++) {
             if (i == 0 && !compact) { ui.caption(Lang.t("nav.section.main"), r.x() + 18, y); y += 13; }
             if (i == MAIN_PAGES) {
@@ -342,7 +346,7 @@ public class SkycoreScreen extends net.minecraft.client.gui.screens.Screen {
             y += 27;
         }
         // profile chip at the bottom
-        if (!compact && r.h() > 400) {
+        if (!compact && r.h() > 400 && y <= r.bottom() - 58) { // only when the navigation leaves room for it
             Rect chip = new Rect(r.x() + 10, r.bottom() - 46, r.w() - 20, 36);
             ui.separator(r.x() + 14, chip.y() - 8, r.w() - 28);
             if (ui.hover(chip)) g.roundRect(chip.x(), chip.y(), chip.w(), chip.h(), Math.min(t.radius, 9), Col.alpha(t.surfaceHover(), 0.6f));
@@ -367,7 +371,7 @@ public class SkycoreScreen extends net.minecraft.client.gui.screens.Screen {
     }
 
     private static final String[][] TITLES = {{"nav.overview", "page.overview.sub"}, {"nav.progression", "page.progression.sub"},
-            {"nav.hud", "page.hud.sub"}, {"nav.sessions", "page.sessions.sub"}, {"nav.goals", "page.goals.sub"},
+            {"nav.hud", "page.hud.sub"}, {"nav.sessions", "page.sessions.sub"}, {"nav.goals", "page.goals.sub"}, {"nav.music", "page.music.sub"},
             {"nav.appearance", "page.appearance.sub"}, {"nav.notifications", "page.notifications.sub"}, {"nav.share", "page.share.sub"}, {"nav.settings", "page.settings.sub"}};
 
     private void drawHeader(Rect r) {

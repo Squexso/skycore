@@ -40,6 +40,7 @@ It also needs **no API key** and talks to no external service.
 | 🧩 **HUD Studio** | Drag, resize and style your own HUD boxes. In **Auto** mode a box only shows while you are doing that activity (a dungeon run, a slayer quest, a skill), so your screen stays clean. |
 | 🔔 **Notifications** | Level-ups, nearly-there warnings and goal completions as quiet toasts. |
 | 💬 **Milestone sharing** | Prepares ready-to-send messages for milestones (for example "Catacombs 40 reached"), routed to Party, All chat or the clipboard. You decide what to send; SKYCORE never sends anything for you. |
+| 🎵 **Music** | Search songs, artists or genres (no account, no API key), keep favorites and playlists in `config/skycore/music/playlists.json`, and let similar songs play on automatically. Streams come from Audius and play through the game's audio device. Only talks to the network while you use it. |
 | 🎨 **Appearance** | Themes, accent colors, window opacity and scale. |
 | 🌍 **English and German** | Full translations. Other languages can be added with a single JSON file. |
 
@@ -79,7 +80,7 @@ Requires a Java 25 toolchain (Gradle can provision one automatically).
 ## 🔒 Privacy and fair play
 
 - Everything stays on your computer, in `config/skycore/`.
-- No accounts, no telemetry, no API key.
+- No accounts, no telemetry, no API key. The Music tab contacts Audius (`api.audius.co`) only when you search or play something.
 - SKYCORE only reads what the game shows you and never acts on your behalf.
 
 > ⚠️ Mods are used at your own risk. Always check the rules of the server you play on.
