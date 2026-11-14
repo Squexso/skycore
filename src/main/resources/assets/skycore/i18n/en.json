@@ -1453,5 +1453,16 @@
   "music.local": "My files",
   "music.local_tip": "My files: music from config/skycore/music/local",
   "music.err.nolocal": "No files yet. Put MP3, OGG, FLAC or WAV files into config/skycore/music/local and press this button again.",
-  "music.err.file": "This file could not be found any more."
+  "music.err.file": "This file could not be found any more.",
+  "music.yt_tip": "YouTube mode: search and play songs from YouTube",
+  "music.yt_title": "Turn on YouTube mode?",
+  "music.yt_body": "SkyCore will download the open-source tool yt-dlp (about 22 MB, from github.com/yt-dlp/yt-dlp, checked against its published checksum) and use it to find and play songs from YouTube. No account or key is needed. Downloading audio from YouTube may go against YouTube\u0027s terms, so this is at your own risk. You can turn it off again at any time.",
+  "music.yt_enable": "Turn on",
+  "music.yt_cancel": "Cancel",
+  "music.yt_on": "YouTube mode is on",
+  "music.yt_off": "YouTube mode is off",
+  "music.yt_installing": "Getting yt-dlp, one moment...",
+  "music.err.ytinstall": "yt-dlp could not be set up. Check your connection, or install yt-dlp yourself.",
+  "music.err.yt": "This song could not be fetched from YouTube.",
+  "music.err.ytfail": "The YouTube search did not work right now."
 }

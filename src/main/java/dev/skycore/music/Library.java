@@ -28,6 +28,8 @@ public final class Library {
         public List<Playlist> playlists = new ArrayList<>();
         /** Newest last. */
         public List<String> recentSearches = new ArrayList<>();
+        /** YouTube mode (yt-dlp) switched on by the player. */
+        public boolean youtube;
     }
 
     private static Data data = new Data();
@@ -128,6 +130,13 @@ public final class Library {
         data.recentSearches.remove(q);
         data.recentSearches.add(q);
         while (data.recentSearches.size() > MAX_SEARCHES) data.recentSearches.remove(0);
+        save();
+    }
+
+    public static boolean youtube() { return data.youtube; }
+
+    public static void setYoutube(boolean on) {
+        data.youtube = on;
         save();
     }
 

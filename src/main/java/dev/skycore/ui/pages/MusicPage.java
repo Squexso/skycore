@@ -32,6 +32,7 @@ public class MusicPage implements Page {
     private MusicTrack addTrack;   // the song the "add to playlist" dialog is about
     private float seekFrac = -1;
     private boolean volumeDirty;
+    private boolean ytDialog;     // "turn on YouTube mode" confirmation
 
     @Override public String id() { return "music"; }
     @Override public Icon icon() { return Icon.SOUND; }
@@ -60,6 +61,7 @@ public class MusicPage implements Page {
         }
         playerBar(ui, new Rect(x, y + h - barH - 2, w, barH), pl, wide);
         if (addTrack != null) addDialog(ui, screen);
+        if (ytDialog) ytDialog(ui, screen);
         return h + 4;
     }
 
@@ -67,7 +69,12 @@ public class MusicPage implements Page {
     private void searchRow(Ui ui, Rect r, Player pl, SkycoreScreen screen) {
         boolean wasFocused = "mu#q".equals(ui.focus);
         float bw = ui.g.width(Lang.t("music.search"), 1f, Weight.MEDIUM) + 40;
-        Rect field = new Rect(r.x(), r.y(), r.w() - bw - 8 - 68, r.h());
+        Rect field = new Rect(r.x(), r.y(), r.w() - bw - 8 - 102, r.h());
+        // YouTube mode (optional, needs yt-dlp)
+        boolean yt = dev.skycore.music.Library.youtube();
+        if (ui.iconButton("mu#yt", new Rect(r.right() - bw - 8 - 96, r.y(), 28, r.h()), Icon.GLOBE, Lang.t("music.yt_tip"), yt, ui.t.primary())) {
+            if (yt) Music.setYoutube(false); else if (!dev.skycore.music.YtDlp.installing()) ytDialog = true;
+        }
         // own audio files: lists everything in config/skycore/music/local
         if (ui.iconButton("mu#local", new Rect(r.right() - bw - 8 - 62, r.y(), 28, r.h()), Icon.IMPORT, Lang.t("music.local_tip"))) { Music.showLocal(); tab = 0; }
         // the music keys are changed in Settings, in the Shortcuts section
@@ -230,6 +237,19 @@ public class MusicPage implements Page {
             }
         }
         ui.popClip();
+    }
+
+    // ------------------------------------------------------------------ YouTube mode
+    private void ytDialog(Ui ui, SkycoreScreen screen) {
+        ui.modal(screen.screenRect(), 380, 232, Lang.t("music.yt_title"), b -> {
+            Gfx g = ui.g;
+            float y = b.y();
+            for (String l : g.wrap(Lang.t("music.yt_body"), b.w(), 0.9f)) { g.text(l, b.x(), y, ui.t.textDim(), 0.9f); y += 12; }
+            float bw = (b.w() - 8) / 2;
+            float by = b.bottom() - 28;
+            if (ui.button("mu#ytn", new Rect(b.x(), by, bw, 26), Lang.t("music.yt_cancel"), Icon.CLOSE, Ui.Style.SECONDARY)) ytDialog = false;
+            if (ui.button("mu#yty", new Rect(b.x() + bw + 8, by, bw, 26), Lang.t("music.yt_enable"), Icon.CHECK, Ui.Style.PRIMARY)) { ytDialog = false; Music.setYoutube(true); }
+        }, () -> ytDialog = false);
     }
 
     // ------------------------------------------------------------------ add to playlist
