@@ -1442,5 +1442,12 @@
   "hud.line.music_artist": "Artist",
   "hud.line.music_status": "Paused / loading note",
   "music.paused": "Paused",
-  "music.resumed": "Playing"
+  "music.resumed": "Playing",
+  "key.skycore.music_toggle.label": "Music: pause / resume",
+  "key.skycore.music_next.label": "Music: next song",
+  "key.skycore.music_prev.label": "Music: previous song",
+  "key.skycore.music_vol_up.label": "Music: volume up",
+  "key.skycore.music_vol_down.label": "Music: volume down",
+  "tip.key_music": "Key for this music action. Works in the game, not while a menu is open.",
+  "music.keys": "Change the music keys"
 }

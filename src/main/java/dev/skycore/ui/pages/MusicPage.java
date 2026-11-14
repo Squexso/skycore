@@ -46,7 +46,7 @@ public class MusicPage implements Page {
         float barH = wide ? 74 : 106;
         float x = area.x(), w = area.w(), y = area.y() + 2;
 
-        searchRow(ui, new Rect(x, y, w, 28), pl);
+        searchRow(ui, new Rect(x, y, w, 28), pl, screen);
         Rect body = new Rect(x, y + 38, w, h - 38 - barH - 10 - 2);
         if (wide) {
             float lw = Math.round(w * 0.56f);
@@ -64,10 +64,15 @@ public class MusicPage implements Page {
     }
 
     // ------------------------------------------------------------------ search
-    private void searchRow(Ui ui, Rect r, Player pl) {
+    private void searchRow(Ui ui, Rect r, Player pl, SkycoreScreen screen) {
         boolean wasFocused = "mu#q".equals(ui.focus);
         float bw = ui.g.width(Lang.t("music.search"), 1f, Weight.MEDIUM) + 40;
-        Rect field = new Rect(r.x(), r.y(), r.w() - bw - 8, r.h());
+        Rect field = new Rect(r.x(), r.y(), r.w() - bw - 8 - 34, r.h());
+        // the music keys are changed in Settings, in the Shortcuts section
+        if (ui.iconButton("mu#keys", new Rect(r.right() - bw - 8 - 28, r.y(), 28, r.h()), Icon.KEYBOARD, Lang.t("music.keys"))) {
+            dev.skycore.core.Skycore.config().expanded.put("set.keys", true);
+            screen.openPage(screen.pageIndex(SettingsPage.class));
+        }
         query = ui.textField("mu#q", field, query, Lang.t("music.search_ph"), 80, null);
         boolean enter = wasFocused && (ui.keyThisFrame(257) || ui.keyThisFrame(335));
         boolean go = ui.button("mu#go", new Rect(r.right() - bw, r.y(), bw, r.h()), Lang.t("music.search"), Icon.SPARK, Ui.Style.PRIMARY, !query.isBlank());

@@ -191,6 +191,9 @@ public final class Skycore {
 
     public static KeyMapping openKey() { return openKey; }
 
+    /** The music keys in the order shown in Settings: pause, next, previous, volume up, volume down. */
+    public static KeyMapping[] musicKeys() { return new KeyMapping[]{musicToggleKey, musicNextKey, musicPrevKey, musicVolUpKey, musicVolDownKey}; }
+
     public static KeyMapping hudKey() { return hudKey; }
 
     /** Replace all settings (import) – language, theme and HUD scale apply immediately. */

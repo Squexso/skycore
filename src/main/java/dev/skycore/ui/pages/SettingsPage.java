@@ -118,6 +118,10 @@ public class SettingsPage implements Page {
         if (s.visible()) {
             cy = keyRow(ui, s, cy, Skycore.openKey(), Lang.t("key.skycore.open.label"), Lang.t("tip.key_open"));
             cy = keyRow(ui, s, cy, Skycore.hudKey(), Lang.t("key.skycore.hud.label"), Lang.t("tip.key_hud"));
+            String[] mk = {"toggle", "next", "prev", "vol_up", "vol_down"};
+            KeyMapping[] mkeys = Skycore.musicKeys();
+            for (int i = 0; i < mkeys.length; i++)
+                cy = keyRow(ui, s, cy, mkeys[i], Lang.t("key.skycore.music_" + mk[i] + ".label"), Lang.t("tip.key_music"));
             for (String l : ui.g.wrap(Lang.t("settings.shortcuts_note"), s.w(), 0.85f)) { ui.g.text(l, s.x(), cy, ui.t.textMute(), 0.85f); cy += 10; }
         }
         return ui.endSection(s, cy);
