@@ -1,6 +1,7 @@
 package dev.skycore.music;
 
 import dev.skycore.core.Storage;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -20,6 +21,9 @@ class LibraryAndSourceTest {
         Storage.useDir(dir);
         Library.reset();
     }
+
+    @AfterEach
+    void waitForWrites() { Storage.flush(); } // the temp folder is deleted right after the test
 
     private static MusicTrack t(String id) { return new MusicTrack(id, "Song " + id, "Artist", 180_000, "Funk", List.of("funky")); }
 
