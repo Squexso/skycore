@@ -5,7 +5,7 @@
   "name": "SKYCORE",
   "description": "Premium Hypixel SkyBlock progression & analytics overlay.",
   "authors": ["squxso"],
-  "license": "All-Rights-Reserved",
+  "license": "MIT",
   "icon": "assets/skycore/icon.png",
   "environment": "client",
   "entrypoints": { "client": ["dev.skycore.SkycoreClient"] },
