@@ -171,6 +171,7 @@ public final class Player {
 
     /** Where the song's audio comes from: a file of the player, or the music source. */
     private static String source(MusicTrack t) throws MusicException {
+        if (YtDlp.isYt(t)) return YtDlp.streamUrl(t.id);
         if (!Local.isLocal(t)) return Audius.streamUrl(t);
         String a = Local.address(t);
         if (a == null) throw new MusicException("music.err.file", "file missing: " + t.id);
@@ -180,7 +181,7 @@ public final class Player {
     /** A broken local file is not a connection problem; for online songs it is checked whether there is internet at all. */
     private String streamKey() {
         MusicTrack c = current;
-        return Local.isLocal(c) || Audius.reachable() ? "music.err.stream" : "music.err.offline";
+        return Local.isLocal(c) || YtDlp.isYt(c) || Audius.reachable() ? "music.err.stream" : "music.err.offline";
     }
 
     /** The audio engine (LavaPlayer, OpenAL) starts on first use, on a worker thread. */
@@ -350,6 +351,13 @@ public final class Player {
         List<MusicTrack> recent;
         synchronized (lock) { recent = new ArrayList<>(history); }
         List<MusicTrack> cands = new ArrayList<>(pool);
+        if (YtDlp.isYt(cur)) { // YouTube songs continue on YouTube, around the genre or else the same artist
+            Set<String> g = Genres.of(cur);
+            String q = !g.isEmpty() ? Genres.searchTerm(g.iterator().next()) : cur.artist;
+            List<MusicTrack> c = new ArrayList<>(pool);
+            if (q != null && !q.isBlank()) c.addAll(ytTracks(q));
+            return Autoplay.pick(c, cur, recent, taste, rnd);
+        }
         if (Local.isLocal(cur)) { // own files continue with own files, no network needed
             return Autoplay.pick(Local.scan(), cur, recent, taste, rnd);
         }
@@ -366,6 +374,18 @@ public final class Player {
         }
         if (cands.isEmpty() && last != null) throw last;
         return Autoplay.pick(cands, cur, recent, taste, rnd);
+    }
+
+    private List<MusicTrack> ytTracks(String q) throws MusicException {
+        long now = System.currentTimeMillis();
+        String key = YtDlp.PREFIX + q.toLowerCase();
+        synchronized (genreCache) {
+            Cached c = genreCache.get(key);
+            if (c != null && now - c.at() < CACHE_MS) return c.tracks();
+        }
+        List<MusicTrack> found = YtDlp.search(q, 25);
+        synchronized (genreCache) { genreCache.put(key, new Cached(now, found)); }
+        return found;
     }
 
     private List<MusicTrack> genreTracks(String genreId) throws MusicException {

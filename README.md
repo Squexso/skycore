@@ -54,6 +54,7 @@ A full music player inside the SKYCORE window.
 
 - **Search** songs, artists or genres. Also works with Russian names, even typed in Latin letters.
 - **My files:** put MP3, OGG, FLAC or WAV files into `config/skycore/music/local/` and they show up in search, favorites and playlists, fully offline. Your own songs, no account needed.
+- **YouTube mode (optional, off by default):** turn it on with the globe button and SKYCORE fetches the open-source tool [yt-dlp](https://github.com/yt-dlp/yt-dlp) once (checksum-verified, or uses one you already have) to search and play songs from YouTube. No account or key. Downloading audio from YouTube may go against its terms, so use it at your own risk.
 - **Favorites and playlists**, saved on every change in `config/skycore/music/playlists.json`.
 - **Autoplay** picks similar songs from the genre and your taste, with the next song prepared for gapless playback.
 - **Player bar** with play/pause, skip, seek and volume. Sound goes through the game's own audio device and master volume.
@@ -104,7 +105,7 @@ Requires a Java 25 toolchain (Gradle can provision one).
 ## 🔒 Privacy and fair play
 
 - Everything stays in `config/skycore/`. No telemetry.
-- The only network traffic: the Music tab contacts `api.audius.co` when you search or play, and the optional ping readout sends the same tiny vanilla ping request as F3+3 every 5 seconds while it is on.
+- The only network traffic: the Music tab contacts `api.audius.co` when you search or play (and, only if you turn YouTube mode on, GitHub once to get yt-dlp and YouTube through it), and the optional ping readout sends the same tiny vanilla ping request as F3+3 every 5 seconds while it is on.
 - SKYCORE only reads what the game shows you and never acts on your behalf.
 
 > ⚠️ Mods are used at your own risk. Always check the rules of the server you play on.

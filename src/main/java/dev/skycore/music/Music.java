@@ -22,6 +22,12 @@ public final class Music {
         static final Search EMPTY = new Search("", List.of(), false, null);
     }
 
+    private static final ExecutorService YT = Executors.newCachedThreadPool(r -> {
+        Thread t = new Thread(r, "SkyCore-Music-Yt");
+        t.setDaemon(true);
+        return t;
+    });
+
     private static Player player;
     private static volatile Search search = Search.EMPTY;
     private static int searchGen;
@@ -77,6 +83,16 @@ public final class Music {
 
     public static Search search() { return search; }
 
+    /** The YouTube switch: off is immediate; on needs yt-dlp, which is fetched first (a toast tells how it went). */
+    public static void setYoutube(boolean on) {
+        if (!on) { Library.setYoutube(false); toast(Lang.t("music.yt_off")); return; }
+        toast(Lang.t("music.yt_installing"));
+        YtDlp.enable(err -> {
+            if (err == null) toast(Lang.t("music.yt_on"));
+            else Notifier.push(null, Lang.t("music.title"), Lang.t(err), Icon.WARNING, Theme.get().danger());
+        });
+    }
+
     /** Starts a search in the background. Also feeds the genre taste of the autoplay. */
     public static void search(String query) {
         String q = query == null ? "" : query.trim();
@@ -110,12 +126,23 @@ public final class Music {
     /** Own files first (they need no connection), then the online results; a missing connection only matters without own matches. */
     private static List<MusicTrack> withLocal(String q) throws MusicException {
         List<MusicTrack> own = Local.find(q);
+        java.util.concurrent.CompletableFuture<List<MusicTrack>> yt = null;
+        if (YtDlp.active()) {
+            yt = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try { return YtDlp.search(q, 25); }
+                catch (MusicException e) { Skycore.LOG.warn("YouTube search failed: {}", e.getMessage()); showError("music.err.ytfail"); return List.<MusicTrack>of(); }
+            }, YT);
+        }
         List<MusicTrack> online;
+        MusicException err = null;
         try { online = searchAll(q); }
-        catch (MusicException e) { if (own.isEmpty()) throw e; online = List.of(); }
-        if (own.isEmpty()) return online;
+        catch (MusicException e) { err = e; online = List.of(); }
+        List<MusicTrack> fromYt = yt == null ? List.of() : yt.join();
+        if (own.isEmpty() && fromYt.isEmpty() && err != null) throw err;
+        // own files, then YouTube, then the music source
         List<MusicTrack> all = new java.util.ArrayList<>(own);
-        all.addAll(online);
+        all.addAll(fromYt);
+        for (MusicTrack t : online) if (!all.contains(t)) all.add(t);
         return all;
     }
 
