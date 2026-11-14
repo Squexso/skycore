@@ -42,6 +42,7 @@ public final class HudWidgets {
             case "skill" -> Icon.SKILLS;
             case "slayer" -> Icon.SLAYER;
             case "session" -> Icon.CLOCK;
+            case "music" -> Icon.SOUND;
             case "reputation", "hotm", "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz" -> Icon.SPARK;
             default -> Icon.GOALS;
         };
@@ -55,6 +56,7 @@ public final class HudWidgets {
             case "slayer" -> new String[]{"remaining", "rate", "eta"};
             case "session" -> new String[]{"time", "xp", "rate", "pace"};
             case "reputation" -> new String[]{"rep_left", "rep_today", "rep_eta"};
+            case "music" -> new String[]{"music_artist", "music_status"};
             case "hotm" -> new String[]{"hotm_xp", "hotm_left", "hotm_target"};
             case "m_ping" -> new String[]{"labels", "realping"};
             case "m_fps", "m_tps", "m_ram", "m_xyz" -> new String[]{"labels"};
@@ -144,6 +146,9 @@ public final class HudWidgets {
             }
             case "reputation" -> {
                 return reputation(lines, t);
+            }
+            case "music" -> {
+                return music(lines, t);
             }
             case "hotm" -> {
                 return hotm(lines, t);
@@ -254,6 +259,31 @@ public final class HudWidgets {
         rows.add(new Row(lb ? label : "", value, meterPaint(t, w, cls), -1));
         return new Content("", Icon.SPARK, -1, null, rows);
     }
+    /** Now playing: song, artist, progress and the time; the keybinds (unbound by default) pause and skip. */
+    private static Content music(WidgetLines lines, Theme t) {
+        List<Row> rows = new ArrayList<>();
+        String title, artist; long pos, dur; dev.skycore.music.Player.Status st;
+        if (Progress.isSample()) { title = "Funk You"; artist = "Westside Zay"; pos = 83_000; dur = 268_000; st = dev.skycore.music.Player.Status.PLAYING; }
+        else {
+            dev.skycore.music.Player pl = dev.skycore.music.Music.player();
+            dev.skycore.music.MusicTrack cur = pl.current();
+            if (cur == null) { rows.add(new Row(Lang.t("hud.status"), Lang.t("music.nothing_playing"), t.textDim(), -1)); return new Content(Lang.t("hud.widget.music"), Icon.SOUND, -1, null, rows); }
+            title = cur.title; artist = cur.artist; pos = pl.positionMs(); dur = pl.durationMs(); st = pl.status();
+        }
+        if (title.length() > 30) title = title.substring(0, 29) + "…";
+        if (lines.on("music_artist") && !artist.isEmpty()) rows.add(new Row("", artist.length() > 30 ? artist.substring(0, 29) + "…" : artist, t.textDim(), -1));
+        if (lines.on("music_status") && st != dev.skycore.music.Player.Status.PLAYING)
+            rows.add(new Row("", Lang.t(st == dev.skycore.music.Player.Status.PAUSED ? "music.paused" : "music.loading"), t.textDim(), -1));
+        float frac = dur > 0 ? Math.max(0, Math.min(1, pos / (float) dur)) : -1;
+        String label = dur > 0 ? mmss(pos) + " / " + mmss(dur) : mmss(pos);
+        return new Content(title, Icon.SOUND, frac, label, rows);
+    }
+
+    private static String mmss(long ms) {
+        long s = Math.max(0, ms / 1000);
+        return String.format(java.util.Locale.ROOT, "%d:%02d", s / 60, s % 60);
+    }
+
     /** Crimson Isle reputation box: level bar, reputation left, gained today and the estimate in play days. */
     private static Content reputation(WidgetLines lines, Theme t) {
         List<Row> rows = new ArrayList<>();
@@ -323,6 +353,7 @@ public final class HudWidgets {
         return switch (id) {
             case "catacombs" -> dev.skycore.tracking.HypixelTracker.inDungeon() || dev.skycore.tracking.HypixelTracker.runActive();
             case "slayer" -> dev.skycore.tracking.HypixelTracker.slayerActive();
+            case "music" -> dev.skycore.music.Music.started() && dev.skycore.music.Music.player().status() != dev.skycore.music.Player.Status.IDLE;
             case "reputation" -> now0() - dev.skycore.data.Reputation.lastGainAt() < 10 * 60_000L;
             case "skill" -> {
                 ProfileData d = Progress.view();

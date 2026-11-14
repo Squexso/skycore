@@ -51,6 +51,17 @@ public final class Music {
     /** True once something was played this session (so the tick / shutdown know whether there is anything to stop). */
     public static boolean started() { return player != null; }
 
+    /** Hotkeys: pause/resume, next, previous. They do nothing while no song was started. */
+    public static void hotkey(String action) {
+        if (player == null) return;
+        switch (action) {
+            case "toggle" -> player.togglePause();
+            case "next" -> player.next();
+            case "previous" -> player.previous();
+            default -> { }
+        }
+    }
+
     public static Search search() { return search; }
 
     /** Starts a search in the background. Also feeds the genre taste of the autoplay. */
@@ -65,7 +76,7 @@ public final class Music {
         SEARCH.execute(() -> {
             Search result;
             try {
-                List<MusicTrack> found = Audius.search(q, 40);
+                List<MusicTrack> found = searchAll(q);
                 result = new Search(q, found, false, found.isEmpty() ? "music.err.none" : null);
             } catch (MusicException e) {
                 Skycore.LOG.warn("Music search failed: {}", e.getMessage());
@@ -81,6 +92,26 @@ public final class Music {
             if (player != null) player.setPool(result.results());
             if (result.errorKey() != null && !"music.err.none".equals(result.errorKey())) showError(result.errorKey());
         });
+    }
+
+    /** The phrase as typed, also in Latin letters for Cyrillic input; when that finds little, its single words as well. */
+    private static List<MusicTrack> searchAll(String q) throws MusicException {
+        List<MusicTrack> found = new java.util.ArrayList<>();
+        java.util.Set<String> ids = new java.util.HashSet<>();
+        MusicException err = null;
+        for (int round = 0; round < 2; round++) {
+            for (String phrase : round == 0 ? Translit.variants(q) : Translit.words(q)) {
+                try {
+                    for (MusicTrack t : Audius.search(phrase, 40)) if (ids.add(t.id)) found.add(t);
+                } catch (MusicException e) {
+                    err = e;
+                    if ("music.err.offline".equals(e.key)) throw e; // no point in trying more
+                }
+            }
+            if (found.size() >= 5) break;
+        }
+        if (found.isEmpty() && err != null) throw err;
+        return found;
     }
 
     /** Screenshot run only: some songs to show the lists. Nothing is saved. */

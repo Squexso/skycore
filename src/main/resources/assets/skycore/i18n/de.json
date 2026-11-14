@@ -1437,5 +1437,9 @@
   "music.err.none": "Nichts gefunden. Versuche eine andere Suche.",
   "music.err.nonext": "Kein ähnlicher Song gefunden. Suche nach etwas Neuem.",
   "music.err.engine": "Der Audio-Player konnte nicht starten. Details stehen im Spiel-Log.",
-  "page.music.sub": "Songs suchen, Favoriten merken und Playlists bauen"
+  "page.music.sub": "Songs suchen, Favoriten merken und Playlists bauen",
+  "hud.widget.music": "Läuft gerade",
+  "hud.line.music_artist": "Künstler",
+  "hud.line.music_status": "Hinweis Pause / Laden",
+  "music.paused": "Pausiert"
 }
