@@ -143,6 +143,7 @@ public final class Storage {
         Path p = directory.resolve(file);
         Path tmp = directory.resolve(file + ".tmp");
         FileStatus st = status(file);
+        try { if (p.getParent() != null) Files.createDirectories(p.getParent()); } catch (Exception ignored) {}
         try (Writer w = Files.newBufferedWriter(tmp, StandardCharsets.UTF_8)) {
             w.write(json);
         } catch (Exception e) {

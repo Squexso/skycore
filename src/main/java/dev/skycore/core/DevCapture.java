@@ -26,7 +26,7 @@ public final class DevCapture {
     private DevCapture() {}
 
     private static void build() {
-        for (int i = 0; i < 9; i++) { int p = i; SHOTS.add(new Shot(String.valueOf(i), () -> new SkycoreScreen(p))); }
+        for (int i = 0; i < 10; i++) { int p = i; SHOTS.add(new Shot(String.valueOf(i), () -> new SkycoreScreen(p))); }
         String[] tabs = {"slayer", "skills", "foraging", "bestiary", "mining", "collections"};
         for (int i = 0; i < tabs.length; i++) {
             int tab = i + 1;
@@ -38,24 +38,25 @@ public final class DevCapture {
         SHOTS.add(new Shot("prog_run_details", () -> { SkycoreScreen s = new SkycoreScreen(1); ProgressionPage p = (ProgressionPage) s.page(1); p.setTab(0); p.openFirstDetails(s.ui(), false); return s; }));
         SHOTS.add(new Shot("prog_calibrate", () -> { SkycoreScreen s = new SkycoreScreen(1); ((ProgressionPage) s.page(1)).openCalibrate(s.ui(), dev.skycore.data.StatDef.get("catacombs")); return s; }));
         SHOTS.add(new Shot("prog_calibrate_missing", () -> { SkycoreScreen s = new SkycoreScreen(1); ((ProgressionPage) s.page(1)).openCalibrate(s.ui(), null); return s; }));
-        SHOTS.add(new Shot("appearance_dropdown", () -> { SkycoreScreen s = new SkycoreScreen(5); s.ui().setState("ap#theme#open", true); return s; }));
-        SHOTS.add(new Shot("appearance_picker", () -> { SkycoreScreen s = new SkycoreScreen(5); ((dev.skycore.ui.pages.AppearancePage) s.page(5)).openPicker(dev.skycore.ui.theme.Theme.Slot.PRIMARY); return s; }));
+        SHOTS.add(new Shot("appearance_dropdown", () -> { SkycoreScreen s = new SkycoreScreen(6); s.ui().setState("ap#theme#open", true); return s; }));
+        SHOTS.add(new Shot("appearance_picker", () -> { SkycoreScreen s = new SkycoreScreen(6); ((dev.skycore.ui.pages.AppearancePage) s.page(6)).openPicker(dev.skycore.ui.theme.Theme.Slot.PRIMARY); return s; }));
         SHOTS.add(new Shot("sessions_week_bars", () -> { SkycoreScreen s = new SkycoreScreen(3); ((SessionsPage) s.page(3)).setView(2, 1); return s; }));
-        SHOTS.add(new Shot("settings_scrolled", () -> scrolled(7, 560)));
-        SHOTS.add(new Shot("notifications_scrolled", () -> scrolled(6, 520)));
+        SHOTS.add(new Shot("settings_scrolled", () -> scrolled(8, 560)));
+        SHOTS.add(new Shot("notifications_scrolled", () -> scrolled(7, 520)));
         SHOTS.add(new Shot("hud_studio_scrolled", () -> scrolled(2, 460)));
-        SHOTS.add(new Shot("settings_datatrack", () -> scrolled(7, 700)));
-        for (int y : new int[]{640, 1180, 1450, 1720, 1990, 2260, 2800}) SHOTS.add(new Shot("reliability_" + y, () -> scrolled(7, y)));
+        SHOTS.add(new Shot("settings_datatrack", () -> scrolled(8, 700)));
+        for (int y : new int[]{640, 1180, 1450, 1720, 1990, 2260, 2800}) SHOTS.add(new Shot("reliability_" + y, () -> scrolled(8, y)));
         // real (non-sample) views with an in-memory demo: per-profile sessions, unassigned data, profiles
         SHOTS.add(new Shot("real_sessions", () -> { realDemo(); SkycoreScreen s = new SkycoreScreen(3); ((SessionsPage) s.page(3)).setView(0, 0); pendingPage = 3; pendingScroll = 1150; return s; }));
         SHOTS.add(new Shot("real_sessions_top", () -> { realDemo(); return new SkycoreScreen(3); }));
-        SHOTS.add(new Shot("real_profiles", () -> { realDemo(); return scrolled(7, 1560); }));
-        SHOTS.add(new Shot("real_datatrack", () -> { realDemo(); return scrolled(7, 840); }));
-        for (int y : new int[]{700, 1400, 1750, 2100, 2800}) SHOTS.add(new Shot("share_" + y, () -> scrolled(7, y)));
+        SHOTS.add(new Shot("real_profiles", () -> { realDemo(); return scrolled(8, 1560); }));
+        SHOTS.add(new Shot("real_datatrack", () -> { realDemo(); return scrolled(8, 840); }));
+        for (int y : new int[]{700, 1400, 1750, 2100, 2800}) SHOTS.add(new Shot("share_" + y, () -> scrolled(8, y)));
         SHOTS.add(new Shot("overview_bottom", () -> scrolled(0, 1150)));
-        SHOTS.add(new Shot("notifications_top", () -> scrolled(6, 160)));
+        SHOTS.add(new Shot("notifications_top", () -> scrolled(7, 160)));
         SHOTS.add(new Shot("real_sessions_areas", () -> { realDemo(); SkycoreScreen s = new SkycoreScreen(3); ((SessionsPage) s.page(3)).setView(0, 0); pendingPage = 3; pendingScroll = 1000; return s; }));
         SHOTS.add(new Shot("hud_editor", () -> new HudEditorScreen(null)));
+        dev.skycore.music.Music.devSample();
         String only = System.getProperty("skycore.capture.only", "");
         if (!only.isEmpty()) {
             java.util.Set<String> keep = java.util.Set.of(only.split(","));

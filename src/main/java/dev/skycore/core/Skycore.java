@@ -73,6 +73,7 @@ public final class Skycore {
         SessionLog.load();
         Goals.load();
         dev.skycore.data.Reputation.load();
+        dev.skycore.music.Music.init();
         HudStore.load();
         dev.skycore.data.History.load();
         stage("data files");
@@ -102,6 +103,7 @@ public final class Skycore {
         ClientTickEvents.END_CLIENT_TICK.register(Skycore::tick);
         ClientLifecycleEvents.CLIENT_STOPPING.register(mc -> {
             HypixelTracker.shutdown();
+            dev.skycore.music.Music.shutdown();
             var rec = SessionGuard.end(System.currentTimeMillis(), Progress.profileName());
             if (rec != null) dev.skycore.data.History.session(rec);
             saveAll();

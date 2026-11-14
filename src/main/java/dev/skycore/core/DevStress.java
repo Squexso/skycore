@@ -82,7 +82,7 @@ public final class DevStress {
     // ------------------------------------------------------------------ scenarios
     private static void build() {
         for (int round = 0; round < ROUNDS; round++) {
-            for (int page = 0; page < 9; page++) {
+            for (int page = 0; page < 10; page++) {
                 final int p = page;
                 // 1. main window X (animations on and off)
                 for (boolean anim : new boolean[]{true, false}) {
@@ -103,7 +103,7 @@ public final class DevStress {
                 // 3. open, switch pages quickly, close immediately
                 SkycoreScreen q = new SkycoreScreen(p);
                 open(q);
-                add(1, () -> { q.openPage((p + 1) % 9); q.openPage((p + 3) % 9); q.openPage(p); });
+                add(1, () -> { q.openPage((p + 1) % 10); q.openPage((p + 3) % 10); q.openPage(p); });
                 clickAt(q, () -> q.devCloseCenter());
                 expectNoScreen("page " + p + " switch then X");
                 add(1, () -> scenarios++);
