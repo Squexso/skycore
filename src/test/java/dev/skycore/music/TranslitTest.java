@@ -23,6 +23,15 @@ class TranslitTest {
     }
 
     @Test
+    void latinTypingIsAlsoSearchedAsCyrillicUnlessItIsAGenre() {
+        assertEquals("тону", Translit.toCyrillic("tonu"));
+        assertEquals("шанс", Translit.toCyrillic("shans"));
+        assertEquals(List.of("tonu", "тону"), Translit.variants("tonu"));
+        assertEquals(List.of("funk"), Translit.variants("funk"));
+        assertEquals(List.of("ab"), Translit.variants("ab"), "too short to guess");
+    }
+
+    @Test
     void fallbackWordsAreTheLongestOnesAndOnlyForPhrases() {
         assertEquals(List.of(), Translit.words("Кино"));
         List<String> w = Translit.words("Кино Группа крови");

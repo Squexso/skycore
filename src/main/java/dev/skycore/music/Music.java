@@ -96,21 +96,30 @@ public final class Music {
 
     /** The phrase as typed, also in Latin letters for Cyrillic input; when that finds little, its single words as well. */
     private static List<MusicTrack> searchAll(String q) throws MusicException {
-        List<MusicTrack> found = new java.util.ArrayList<>();
-        java.util.Set<String> ids = new java.util.HashSet<>();
+        List<List<MusicTrack>> lists = new java.util.ArrayList<>();
         MusicException err = null;
-        for (int round = 0; round < 2; round++) {
+        int total = 0;
+        for (int round = 0; round < 2 && total < 5; round++) {
             for (String phrase : round == 0 ? Translit.variants(q) : Translit.words(q)) {
                 try {
-                    for (MusicTrack t : Audius.search(phrase, 40)) if (ids.add(t.id)) found.add(t);
+                    List<MusicTrack> r = Audius.search(phrase, 40);
+                    lists.add(r);
+                    total += r.size();
                 } catch (MusicException e) {
                     err = e;
                     if ("music.err.offline".equals(e.key)) throw e; // no point in trying more
                 }
             }
-            if (found.size() >= 5) break;
         }
-        if (found.isEmpty() && err != null) throw err;
+        if (total == 0 && err != null) throw err;
+        // take turns, so that the typed phrase and its other spelling both show up near the top
+        List<MusicTrack> found = new java.util.ArrayList<>();
+        java.util.Set<String> ids = new java.util.HashSet<>();
+        for (int i = 0; found.size() < 60; i++) {
+            boolean any = false;
+            for (List<MusicTrack> l : lists) if (i < l.size()) { any = true; if (ids.add(l.get(i).id)) found.add(l.get(i)); }
+            if (!any) break;
+        }
         return found;
     }
 

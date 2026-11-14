@@ -36,12 +36,35 @@ public final class Translit {
         return out.toString();
     }
 
+    /** Latin letters in Cyrillic ("tonu" to "тону"): a rough phonetic guess for people who type Russian names with a Latin keyboard. */
+    public static String toCyrillic(String s) {
+        String[][] multi = {{"shch", "щ"}, {"sch", "щ"}, {"zh", "ж"}, {"kh", "х"}, {"ts", "ц"}, {"ch", "ч"}, {"sh", "ш"}, {"yu", "ю"}, {"ya", "я"}, {"yo", "ё"}, {"ju", "ю"}, {"ja", "я"}, {"ye", "е"}};
+        String single = "abvgdezijklmnoprstufhcywxq";
+        String[] to = {"а", "б", "в", "г", "д", "е", "з", "и", "й", "к", "л", "м", "н", "о", "п", "р", "с", "т", "у", "ф", "х", "к", "ы", "в", "кс", "к"};
+        String low = s.toLowerCase(Locale.ROOT);
+        StringBuilder out = new StringBuilder();
+        outer:
+        for (int i = 0; i < low.length(); ) {
+            for (String[] m : multi) if (low.startsWith(m[0], i)) { out.append(m[1]); i += m[0].length(); continue outer; }
+            char c = low.charAt(i);
+            int k = single.indexOf(c);
+            out.append(k >= 0 ? to[k] : String.valueOf(c));
+            i++;
+        }
+        return out.toString();
+    }
+
+    private static boolean plainLatinWord(String q) {
+        return q.length() >= 3 && q.chars().allMatch(c -> (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == ' ');
+    }
+
     /** The phrases to search for, the typed one first. */
     public static List<String> variants(String query) {
         Set<String> out = new LinkedHashSet<>();
         String q = query.trim();
         out.add(q);
         if (hasCyrillic(q)) out.add(toLatin(q));
+        else if (plainLatinWord(q) && Genres.detect(q).isEmpty()) out.add(toCyrillic(q)); // not a genre: may be a Russian title in Latin letters
         return new ArrayList<>(out);
     }
 

@@ -57,6 +57,8 @@ public final class HudStore {
         String active = "Default";
         /** Set once the one-time switch of the activity widgets to "auto" visibility was applied. */
         boolean autoVisibility;
+        /** Set once the now-playing box was made smaller by default. */
+        boolean musicCompact;
         Map<String, List<WidgetState>> profiles = new LinkedHashMap<>();
     }
 
@@ -71,6 +73,11 @@ public final class HudStore {
         if (saved.profiles.isEmpty()) saved.profiles.put("Default", defaults());
         if (!saved.profiles.containsKey(saved.active)) saved.active = saved.profiles.keySet().iterator().next();
         for (List<WidgetState> l : saved.profiles.values()) normalize(l);
+        if (!saved.musicCompact) { // one time: the now-playing box starts small (it can still be resized)
+            for (List<WidgetState> l : saved.profiles.values()) for (WidgetState w : l) if ("music".equals(w.id)) w.scale = 0.8f;
+            saved.musicCompact = true;
+            dirty = true;
+        }
         if (!saved.autoVisibility) { // one time: activity boxes only appear while their activity is going on
             for (List<WidgetState> l : saved.profiles.values())
                 for (WidgetState w : l) if ("always".equals(w.visibility) && ("catacombs".equals(w.id) || "skill".equals(w.id) || "slayer".equals(w.id))) w.visibility = "auto";
@@ -112,6 +119,7 @@ public final class HudStore {
         hotm.visibility = "mining"; // only while mining
         l.add(hotm);
         WidgetState mus = make("music", 0.45f, 0.30f, true);
+        mus.scale = 0.8f;
         mus.visibility = "auto"; // only while a song is playing
         l.add(mus);
         String[] ids = {"m_fps", "m_tps", "m_ping", "m_ram", "m_xyz"};
