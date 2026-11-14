@@ -62,6 +62,12 @@ public final class HudInspector {
                 if (v != w.line(k)) { w.lines.put(k, v); HudStore.changed(); }
                 cy += 22;
             }
+            if ("hotm".equals(w.id)) { // which tier the "XP to tier X" row counts towards
+                cy += 6;
+                float tt = ui.sliderRow("hi#tier", new Rect(s.x(), cy, s.w(), 30), Lang.t("hud.hotm.target_tier"), w.targetTier, 2, 10, 1, String.valueOf(w.targetTier), Lang.t("tip.hud_hotm_tier"));
+                if ((int) tt != w.targetTier) { w.targetTier = (int) tt; HudStore.changed(); }
+                cy += 36;
+            }
         }
         return ui.endSection(s, cy);
     }

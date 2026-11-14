@@ -24,8 +24,8 @@ public final class XpTables {
             1410000, 1900000, 2500000, 3300000, 4300000, 5600000, 7200000, 9200000, 12000000, 15000000, 19000000, 24000000,
             30000000, 38000000, 48000000, 60000000, 75000000, 93000000, 116250000};
 
-    /** Heart of the Mountain tiers 1→2 … 9→10. */
-    public static final long[] HOTM = {3000, 9000, 25000, 60000, 100000, 150000, 210000, 290000, 400000};
+    /** Heart of the Mountain: XP from tier {@code i} to {@code i+1}, indexed by tier like the other tables (tiers start at 1, so index 0 is unused). */
+    public static final long[] HOTM = {0, 3000, 9000, 25000, 60000, 100000, 150000, 210000, 290000, 400000};
 
     // Slayer tables are cumulative on the wiki; converted to per-level requirements.
     public static final long[] SLAYER_ZOMBIE = perLevel(5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000);

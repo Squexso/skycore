@@ -10,6 +10,7 @@ import dev.skycore.data.Progress;
 import dev.skycore.data.SessionLog;
 import dev.skycore.data.SideXp;
 import dev.skycore.data.StatDef;
+import dev.skycore.data.XpTables;
 import dev.skycore.ui.Rect;
 import dev.skycore.ui.gfx.Gfx;
 import dev.skycore.ui.gfx.Icon;
@@ -41,7 +42,7 @@ public final class HudWidgets {
             case "skill" -> Icon.SKILLS;
             case "slayer" -> Icon.SLAYER;
             case "session" -> Icon.CLOCK;
-            case "reputation", "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz" -> Icon.SPARK;
+            case "reputation", "hotm", "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz" -> Icon.SPARK;
             default -> Icon.GOALS;
         };
     }
@@ -54,6 +55,7 @@ public final class HudWidgets {
             case "slayer" -> new String[]{"remaining", "rate", "eta"};
             case "session" -> new String[]{"time", "xp", "rate", "pace"};
             case "reputation" -> new String[]{"rep_left", "rep_today", "rep_eta"};
+            case "hotm" -> new String[]{"hotm_xp", "hotm_left", "hotm_target"};
             case "m_ping" -> new String[]{"labels", "realping"};
             case "m_fps", "m_tps", "m_ram", "m_xyz" -> new String[]{"labels"};
             default -> new String[]{"bars", "eta"};
@@ -143,6 +145,9 @@ public final class HudWidgets {
             case "reputation" -> {
                 return reputation(lines, t);
             }
+            case "hotm" -> {
+                return hotm(lines, t);
+            }
             case "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz" -> {
                 return meter(id, lines, t);
             }
@@ -188,6 +193,33 @@ public final class HudWidgets {
                 return new Content(Lang.t("hud.widget.goals"), Icon.GOALS, -1, null, rows);
             }
         }
+    }
+
+    /** Heart of the Mountain as plain numbers: XP now / needed, XP to the next tier and XP to a chosen target tier. */
+    private static Content hotm(WidgetLines lines, Theme t) {
+        StatDef def = StatDef.get("hotm");
+        StatProgress p = Progress.view().peek("hotm");
+        List<Row> rows = new ArrayList<>();
+        String name = Lang.t(def.nameKey());
+        if (!p.known()) {
+            rows.add(new Row(Lang.t("hud.status"), Lang.t("hud.no_hotm"), t.textDim(), -1));
+            return new Content(name, Icon.MINING, -1, null, rows);
+        }
+        boolean maxed = p.level >= def.maxLevel() || (p.need <= 0 && p.percent < 0);
+        HudStore.WidgetState w = lines.w();
+        int target = Math.max(2, Math.min(def.maxLevel(), w == null ? def.maxLevel() : w.targetTier));
+        if (lines.on("hotm_xp")) {
+            String v = maxed ? Lang.t("progress.maxed") : p.need > 0 ? Lang.num(p.xp) + " / " + Lang.num(p.need) : Lang.percent(p.frac());
+            rows.add(new Row(Lang.t("hud.hotm.xp"), v));
+        }
+        if (lines.on("hotm_left") && !maxed && p.need > 0)
+            rows.add(new Row(Lang.t("hud.hotm.left", p.level + 1), Lang.num(p.remaining())));
+        if (lines.on("hotm_target")) {
+            String label = Lang.t("hud.hotm.left", target);
+            if (p.level >= target) rows.add(new Row(label, Lang.t("hud.hotm.reached"), t.success(), -1));
+            else if (p.need > 0) rows.add(new Row(label, Lang.num(XpTables.xpTo(def.table(), p.level, p.xp, target))));
+        }
+        return new Content(name + " " + p.level, Icon.MINING, maxed ? 1 : p.need > 0 || p.percent >= 0 ? p.frac() : -1, null, rows);
     }
 
     /** The single-value readouts (FPS, TPS, ping, memory, position): each is its own widget without a box. */

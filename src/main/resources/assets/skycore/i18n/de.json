@@ -1390,5 +1390,15 @@
   "hud.color.bad": "Schlecht",
   "hud.color_by_value": "Farbe nach Wert",
   "tip.hud_color_by_value": "Färbt die Zahl danach, wie gut der Wert ist. Aus: eine feste Farbe (unter Text einstellbar).",
-  "hud.line.realping": "Echten Ping messen (sendet ein Vanilla-Ping-Paket)"
+  "hud.line.realping": "Echten Ping messen (sendet ein Vanilla-Ping-Paket)",
+  "hud.widget.hotm": "Heart of the Mountain",
+  "hud.line.hotm_xp": "XP aktuell / benötigt",
+  "hud.line.hotm_left": "XP bis zum nächsten Tier",
+  "hud.line.hotm_target": "XP bis zum Ziel-Tier",
+  "hud.hotm.xp": "XP",
+  "hud.hotm.left": "Bis Tier {0}",
+  "hud.hotm.reached": "erreicht",
+  "hud.hotm.target_tier": "Ziel-Tier",
+  "hud.no_hotm": "Heart-of-the-Mountain-Menü einmal öffnen",
+  "tip.hud_hotm_tier": "Das Tier, bis zu dem die Zeile \"Bis Tier\" rechnet (2 bis 10)."
 }
