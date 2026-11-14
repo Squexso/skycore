@@ -55,11 +55,24 @@ public final class Music {
     public static void hotkey(String action) {
         if (player == null) return;
         switch (action) {
-            case "toggle" -> player.togglePause();
+            case "toggle" -> {
+                player.togglePause();
+                toast(Lang.t(player.status() == Player.Status.PAUSED ? "music.paused" : "music.resumed"));
+            }
+            case "volup", "voldown" -> {
+                float v = Math.max(0f, Math.min(1f, Math.round((player.volume() + ("volup".equals(action) ? 0.05f : -0.05f)) * 20) / 20f));
+                player.setVolume(v);
+                Library.setVolume(v, true);
+                toast(Lang.t("music.volume") + ": " + Math.round(v * 100) + "%");
+            }
             case "next" -> player.next();
             case "previous" -> player.previous();
             default -> { }
         }
+    }
+
+    private static void toast(String text) {
+        Notifier.push(null, Lang.t("music.title"), text, Icon.SOUND, Theme.get().primary());
     }
 
     public static Search search() { return search; }
