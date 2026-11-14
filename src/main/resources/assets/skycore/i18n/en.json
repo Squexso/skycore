@@ -1449,5 +1449,9 @@
   "key.skycore.music_vol_up.label": "Music: volume up",
   "key.skycore.music_vol_down.label": "Music: volume down",
   "tip.key_music": "Key for this music action. Works in the game, not while a menu is open.",
-  "music.keys": "Change the music keys"
+  "music.keys": "Change the music keys",
+  "music.local": "My files",
+  "music.local_tip": "My files: music from config/skycore/music/local",
+  "music.err.nolocal": "No files yet. Put MP3, OGG, FLAC or WAV files into config/skycore/music/local and press this button again.",
+  "music.err.file": "This file could not be found any more."
 }

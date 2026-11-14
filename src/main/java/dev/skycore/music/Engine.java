@@ -7,6 +7,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.local.LocalAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -50,6 +51,7 @@ final class Engine {
         manager.getConfiguration().setOutputFormat(new Pcm16AudioDataFormat(2, 48000, 960, false)); // little endian, what OpenAL wants
         manager.setFrameBufferDuration(1500);
         manager.registerSourceManager(new HttpAudioSourceManager());
+        manager.registerSourceManager(new LocalAudioSourceManager());
         player = manager.createPlayer();
         player.addListener(new AudioEventAdapter() {
             @Override public void onTrackEnd(AudioPlayer p, AudioTrack t, AudioTrackEndReason reason) {

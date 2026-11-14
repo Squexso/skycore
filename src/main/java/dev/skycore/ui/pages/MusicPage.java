@@ -67,7 +67,9 @@ public class MusicPage implements Page {
     private void searchRow(Ui ui, Rect r, Player pl, SkycoreScreen screen) {
         boolean wasFocused = "mu#q".equals(ui.focus);
         float bw = ui.g.width(Lang.t("music.search"), 1f, Weight.MEDIUM) + 40;
-        Rect field = new Rect(r.x(), r.y(), r.w() - bw - 8 - 34, r.h());
+        Rect field = new Rect(r.x(), r.y(), r.w() - bw - 8 - 68, r.h());
+        // own audio files: lists everything in config/skycore/music/local
+        if (ui.iconButton("mu#local", new Rect(r.right() - bw - 8 - 62, r.y(), 28, r.h()), Icon.IMPORT, Lang.t("music.local_tip"))) { Music.showLocal(); tab = 0; }
         // the music keys are changed in Settings, in the Shortcuts section
         if (ui.iconButton("mu#keys", new Rect(r.right() - bw - 8 - 28, r.y(), 28, r.h()), Icon.KEYBOARD, Lang.t("music.keys"))) {
             dev.skycore.core.Skycore.config().expanded.put("set.keys", true);

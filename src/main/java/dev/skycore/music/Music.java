@@ -89,7 +89,7 @@ public final class Music {
         SEARCH.execute(() -> {
             Search result;
             try {
-                List<MusicTrack> found = searchAll(q);
+                List<MusicTrack> found = withLocal(q);
                 result = new Search(q, found, false, found.isEmpty() ? "music.err.none" : null);
             } catch (MusicException e) {
                 Skycore.LOG.warn("Music search failed: {}", e.getMessage());
@@ -105,6 +105,27 @@ public final class Music {
             if (player != null) player.setPool(result.results());
             if (result.errorKey() != null && !"music.err.none".equals(result.errorKey())) showError(result.errorKey());
         });
+    }
+
+    /** Own files first (they need no connection), then the online results; a missing connection only matters without own matches. */
+    private static List<MusicTrack> withLocal(String q) throws MusicException {
+        List<MusicTrack> own = Local.find(q);
+        List<MusicTrack> online;
+        try { online = searchAll(q); }
+        catch (MusicException e) { if (own.isEmpty()) throw e; online = List.of(); }
+        if (own.isEmpty()) return online;
+        List<MusicTrack> all = new java.util.ArrayList<>(own);
+        all.addAll(online);
+        return all;
+    }
+
+    /** Shows every file from the local folder as the result list (the folder is created if it does not exist yet). */
+    public static void showLocal() {
+        Local.ensureDir();
+        List<MusicTrack> own = Local.scan();
+        synchronized (SEARCH) { searchGen++; }
+        search = new Search(Lang.t("music.local"), own, false, own.isEmpty() ? "music.err.nolocal" : null);
+        if (player != null) player.setPool(own);
     }
 
     /** The phrase as typed, also in Latin letters for Cyrillic input; when that finds little, its single words as well. */

@@ -53,6 +53,7 @@ Boxes: Catacombs · Skill · Slayer · Session · Goals · Reputation · HOTM ·
 A full music player inside the SKYCORE window.
 
 - **Search** songs, artists or genres. Also works with Russian names, even typed in Latin letters.
+- **My files:** put MP3, OGG, FLAC or WAV files into `config/skycore/music/local/` and they show up in search, favorites and playlists, fully offline. Your own songs, no account needed.
 - **Favorites and playlists**, saved on every change in `config/skycore/music/playlists.json`.
 - **Autoplay** picks similar songs from the genre and your taste, with the next song prepared for gapless playback.
 - **Player bar** with play/pause, skip, seek and volume. Sound goes through the game's own audio device and master volume.

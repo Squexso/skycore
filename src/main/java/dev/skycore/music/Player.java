@@ -162,11 +162,25 @@ public final class Player {
             try {
                 Engine e = engine();
                 if (e == null) { problem(g, "music.err.engine", "engine unavailable"); return; }
-                e.load(Audius.streamUrl(t), l -> loaded(g, t, l, cut), d -> loadFailed(g, t, d));
+                e.load(source(t), l -> loaded(g, t, l, cut), d -> loadFailed(g, t, d));
             } catch (Throwable x) {
                 loadFailed(g, t, x.toString());
             }
         });
+    }
+
+    /** Where the song's audio comes from: a file of the player, or the music source. */
+    private static String source(MusicTrack t) throws MusicException {
+        if (!Local.isLocal(t)) return Audius.streamUrl(t);
+        String a = Local.address(t);
+        if (a == null) throw new MusicException("music.err.file", "file missing: " + t.id);
+        return a;
+    }
+
+    /** A broken local file is not a connection problem; for online songs it is checked whether there is internet at all. */
+    private String streamKey() {
+        MusicTrack c = current;
+        return Local.isLocal(c) || Audius.reachable() ? "music.err.stream" : "music.err.offline";
     }
 
     /** The audio engine (LavaPlayer, OpenAL) starts on first use, on a worker thread. */
@@ -210,14 +224,14 @@ public final class Player {
         synchronized (lock) { if (g != gen) return; }
         Skycore.LOG.warn("Music: could not open '{}': {}", t.title, detail);
         // no internet at all, or just this song? (a dead link is skipped, a missing connection is not)
-        problem(g, Audius.reachable() ? "music.err.stream" : "music.err.offline", detail);
+        problem(g, streamKey(), detail);
     }
 
     private void onBroke(String detail) {
         int g;
         synchronized (lock) { g = gen; }
         Skycore.LOG.warn("Music: playback broke: {}", detail);
-        problem(g, Audius.reachable() ? "music.err.stream" : "music.err.offline", detail);
+        problem(g, streamKey(), detail);
     }
 
     /**
@@ -323,7 +337,7 @@ public final class Player {
                 if (e == null) return;
                 final MusicTrack target = n;
                 final boolean fq = fromQueue;
-                e.load(Audius.streamUrl(n), l -> { synchronized (lock) { if (g == gen) next = new Next(target, l, g, fq); } }, d -> {});
+                e.load(source(n), l -> { synchronized (lock) { if (g == gen) next = new Next(target, l, g, fq); } }, d -> {});
             } catch (MusicException | RuntimeException ex) {
                 Skycore.LOG.debug("Music: could not prepare the next song: {}", ex.toString());
             }
@@ -336,6 +350,9 @@ public final class Player {
         List<MusicTrack> recent;
         synchronized (lock) { recent = new ArrayList<>(history); }
         List<MusicTrack> cands = new ArrayList<>(pool);
+        if (Local.isLocal(cur)) { // own files continue with own files, no network needed
+            return Autoplay.pick(Local.scan(), cur, recent, taste, rnd);
+        }
         Set<String> genres = new LinkedHashSet<>();
         if (cur != null) genres.addAll(Genres.of(cur));
         List<String> wanted = new ArrayList<>(genres);
