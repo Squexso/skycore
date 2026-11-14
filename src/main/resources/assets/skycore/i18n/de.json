@@ -1442,5 +1442,12 @@
   "hud.line.music_artist": "Künstler",
   "hud.line.music_status": "Hinweis Pause / Laden",
   "music.paused": "Pausiert",
-  "music.resumed": "Weiter"
+  "music.resumed": "Weiter",
+  "key.skycore.music_toggle.label": "Musik: Pause / Weiter",
+  "key.skycore.music_next.label": "Musik: nächster Song",
+  "key.skycore.music_prev.label": "Musik: vorheriger Song",
+  "key.skycore.music_vol_up.label": "Musik: lauter",
+  "key.skycore.music_vol_down.label": "Musik: leiser",
+  "tip.key_music": "Taste für diese Musik-Aktion. Funktioniert im Spiel, nicht in offenen Menüs.",
+  "music.keys": "Musik-Tasten ändern"
 }
