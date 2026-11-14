@@ -1390,5 +1390,15 @@
   "hud.color.bad": "Bad",
   "hud.color_by_value": "Colour by value",
   "tip.hud_color_by_value": "Colours the number by how good it is. Off: one plain colour (set under Text).",
-  "hud.line.realping": "Measure real ping (sends a vanilla ping packet)"
+  "hud.line.realping": "Measure real ping (sends a vanilla ping packet)",
+  "hud.widget.hotm": "Heart of the Mountain",
+  "hud.line.hotm_xp": "XP now / needed",
+  "hud.line.hotm_left": "XP to next tier",
+  "hud.line.hotm_target": "XP to target tier",
+  "hud.hotm.xp": "XP",
+  "hud.hotm.left": "To tier {0}",
+  "hud.hotm.reached": "reached",
+  "hud.hotm.target_tier": "Target tier",
+  "hud.no_hotm": "Open the Heart of the Mountain menu once",
+  "tip.hud_hotm_tier": "The tier the \"To tier\" line counts towards (2 to 10)."
 }

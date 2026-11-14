@@ -422,7 +422,7 @@ public class ProgressionPage implements Page {
             g.roundRect(r.x(), r.y(), r.w(), r.h(), Math.min(ui.radius(), 6), Col.alpha(c, done ? 0.18f : cur ? 0.14f : 0.06f));
             if (cur) g.roundOutline(r.x(), r.y(), r.w(), r.h(), Math.min(ui.radius(), 6), 1f / g.s * 2, Col.alpha(t.primary(), 0.7f));
             g.textCentered(String.valueOf(i + 1), r.cx(), r.y() + 8, done || cur ? t.text() : t.textDim(), 1.1f, true);
-            if (i > 0) cum += XpTables.HOTM[i - 1];
+            if (i > 0) cum += XpTables.HOTM[i];
             g.textCentered(i == 0 ? "0" : Lang.compact(cum), r.cx(), r.y() + 28, t.textMute(), 0.75f, false);
             if (ui.hover(r)) ui.tooltip(Lang.t("hotm.tier", i + 1) + "\n" + Lang.t("hotm.total_xp", Lang.num(cum)));
         }

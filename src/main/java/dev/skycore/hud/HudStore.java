@@ -13,7 +13,7 @@ import java.util.Map;
 
 /** HUD layouts: multiple named profiles, persisted to hud.json, shareable as a clipboard string. */
 public final class HudStore {
-    public static final String[] WIDGETS = {"catacombs", "skill", "slayer", "session", "goals", "reputation", "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz"};
+    public static final String[] WIDGETS = {"catacombs", "skill", "slayer", "session", "goals", "reputation", "hotm", "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz"};
     private static final String EXPORT_PREFIX = "SKYCORE-HUD:";
 
     public static class WidgetState {
@@ -40,6 +40,8 @@ public final class HudStore {
         public Map<String, Boolean> lines = new LinkedHashMap<>();
         /** Readout widgets only: colour the number by how good it is. Off = one plain colour (text). */
         public boolean autoColor = true;
+        /** Heart of the Mountain box: the tier whose remaining XP is shown (2..10). */
+        public int targetTier = 10;
         /** Readout colours for good / medium / bad values; empty = theme colour. */
         public String colorGood = "", colorMid = "", colorBad = "";
 
@@ -89,6 +91,7 @@ public final class HudStore {
             w.scale = Math.max(0.5f, Math.min(3f, w.scale));
             w.textScale = w.textScale <= 0 ? 1f : Math.max(0.6f, Math.min(1.8f, w.textScale));
             if (w.title == null) w.title = "";
+            w.targetTier = Math.max(2, Math.min(10, w.targetTier == 0 ? 10 : w.targetTier));
             if (w.visibility == null) w.visibility = "always";
             if (("session".equals(w.id) || "goals".equals(w.id)) && "auto".equals(w.visibility)) w.visibility = "always";
         }
@@ -105,6 +108,9 @@ public final class HudStore {
         WidgetState rep = make("reputation", 0.80f, 0.55f, true);
         rep.visibility = "auto"; // only while reputation is being earned
         l.add(rep);
+        WidgetState hotm = make("hotm", 0.80f, 0.74f, true);
+        hotm.visibility = "mining"; // only while mining
+        l.add(hotm);
         String[] ids = {"m_fps", "m_tps", "m_ping", "m_ram", "m_xyz"};
         for (int i = 0; i < ids.length; i++) { // plain numbers, one under the other; every one can be moved or switched off
             WidgetState m = make(ids[i], 0.45f, 0.01f + 0.045f * i, true);
