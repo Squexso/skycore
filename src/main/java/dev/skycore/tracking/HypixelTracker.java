@@ -87,7 +87,7 @@ public final class HypixelTracker {
      * is the boost (a shard, a perk): it is learned and applied to the next claims. Anything outside 1.0 to 1.5 is not a boost
      * (other XP sources in between) and is ignored.
      */
-    private static void calibrateHotm(int level, double current) {
+    static void calibrateHotm(int level, double current) {
         if (commPredicted >= 400 && commBaseTotal >= 0 && current >= 0) {
             double ratio = (hotmTotal(level, current) - commBaseTotal) / commPredicted;
             if (ratio >= 1.0 && ratio <= 1.5) {
@@ -805,6 +805,7 @@ public final class HypixelTracker {
             if (commissionsLeftAt == 0) commissionsLeftAt = t;
             else if (t - commissionsLeftAt > 20_000) { prevCommissions = Map.of(); commissionsLeftAt = 0; } // really closed
         }
+        HypixelApi.tick(onSkyBlock && Progress.isIdentified());
         if (++snapshotTimer >= 12_000) { snapshotTimer = 0; if (onSkyBlock && Progress.isIdentified()) History.snapshot(Progress.profileName(), Progress.real()); }
         finishSuspended(false);
         handleQuest(slayer.tick(System.currentTimeMillis()), "timeout");
