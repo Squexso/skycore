@@ -252,4 +252,18 @@ public final class MenuParser {
         if (m.find()) n = m.group(1).replaceAll("\\s+Level$", "").trim();
         return n;
     }
+
+    private static final Pattern SHARD_HOTM = Pattern.compile("Commissions grant \\+([\\d.]+)%\\s+more\\s+HOTM\\s+Exp", Pattern.CASE_INSENSITIVE);
+
+    /** The commission HOTM bonus a shard attribute shows in a Hunting Box or Attribute menu, as a factor like 1.1; 1.0 if none is shown. */
+    public static double shardHotmBoost(List<Item> items) {
+        double best = 0;
+        for (Item it : items) {
+            Matcher m = SHARD_HOTM.matcher(String.join(" ", it.lore()));
+            if (m.find()) {
+                try { best = Math.max(best, Double.parseDouble(m.group(1))); } catch (NumberFormatException ignored) { }
+            }
+        }
+        return best > 0 && best <= 100 ? 1.0 + best / 100.0 : 1.0;
+    }
 }
