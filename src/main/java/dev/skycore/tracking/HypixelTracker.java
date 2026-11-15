@@ -948,7 +948,10 @@ public final class HypixelTracker {
         menuHash = hash;
         if (commissionsMenu) {
             double claimed = MenuParser.claimedHotmXp(prevCommissions, comm);
-            prevCommissions = comm;
+            Map<Integer, MenuParser.Commission> merged = new HashMap<>(prevCommissions);
+            merged.putAll(comm);
+            prevCommissions = merged;
+            Skycore.LOG.info("SKYCORE commissions menu: {} (claimed {})", comm, claimed);
             if (claimed > 0 && Progress.isIdentified() && Skycore.config().tracks("mining")) {
                 Progress.gain(StatDef.get("hotm"), claimed); // verified base from /hotm plus the claimed XP, shown as event-tracked
                 log("commission_claim", "hotm", claimed, "menu", "commission_menu", 0.9, true);

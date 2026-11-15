@@ -23,6 +23,7 @@ final class MenuDump {
         String t = title.toLowerCase();
         if (t.contains("heart of the mountain")) return "menu-dump-hotm.txt";
         if (t.contains("heart of the forest")) return "menu-dump-hotf.txt";
+        if (t.equals("commissions")) return "menu-dump-commissions.txt";
         return null;
     }
 
@@ -37,9 +38,14 @@ final class MenuDump {
         }
         String text = sb.toString();
         Path path = Storage.dir().resolve(file);
+        boolean append = file.equals("menu-dump-commissions.txt"); // every change is kept, to compare before and after a claim
         Storage.async(() -> {
             try {
-                Files.writeString(path, text, StandardCharsets.UTF_8);
+                if (append) {
+                    String stamp = "\n######## " + java.time.LocalTime.now().withNano(0) + "\n";
+                    if (Files.exists(path) && Files.size(path) > 80_000) Files.deleteIfExists(path);
+                    Files.writeString(path, stamp + text, StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+                } else Files.writeString(path, text, StandardCharsets.UTF_8);
             } catch (Exception e) {
                 Skycore.LOG.warn("SKYCORE menu dump failed", e);
             }
