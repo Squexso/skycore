@@ -105,6 +105,7 @@ Requires a Java 25 toolchain (Gradle can provision one).
 ## 🔒 Privacy and fair play
 
 - Everything stays in `config/skycore/`. No telemetry.
+- **Optional Hypixel API key:** if you put your own personal key into `config/skycore/hypixel-key.txt`, SKYCORE reads your exact HOTM XP from your profile. The key stays on your computer, is only sent to `api.hypixel.net`, is never written to logs, backups or exports, and is not part of the mod. Never share or commit it.
 - The only network traffic: the Music tab contacts `api.audius.co` when you search or play (and, only if you turn YouTube mode on, GitHub once to get yt-dlp and YouTube through it), and the optional ping readout sends the same tiny vanilla ping request as F3+3 every 5 seconds while it is on.
 - SKYCORE only reads what the game shows you and never acts on your behalf.
 

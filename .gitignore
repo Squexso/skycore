@@ -28,3 +28,8 @@ Thumbs.db
 *.pem
 local.properties
 run262/
+
+# Hypixel API key and any local key file (never commit)
+hypixel-key*
+*key*.txt
+config/

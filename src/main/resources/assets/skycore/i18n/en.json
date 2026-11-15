@@ -1464,5 +1464,9 @@
   "music.yt_installing": "Getting yt-dlp, one moment...",
   "music.err.ytinstall": "yt-dlp could not be set up. Check your connection, or install yt-dlp yourself.",
   "music.err.yt": "This song could not be fetched from YouTube.",
-  "music.err.ytfail": "The YouTube search did not work right now."
+  "music.err.ytfail": "The YouTube search did not work right now.",
+  "api.title": "Hypixel API",
+  "api.connected": "Your Hypixel key works. The exact HOTM XP is now read from your profile.",
+  "api.bad_key": "Hypixel rejected the API key. Check config/skycore/hypixel-key.txt.",
+  "api.limit": "Hypixel asked for a short pause (rate limit). It will try again later."
 }
