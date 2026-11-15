@@ -1464,5 +1464,6 @@
   "music.yt_installing": "yt-dlp wird geholt, einen Moment...",
   "music.err.ytinstall": "yt-dlp konnte nicht eingerichtet werden. Prüfe die Verbindung oder installiere yt-dlp selbst.",
   "music.err.yt": "Dieser Song konnte nicht von YouTube geholt werden.",
-  "music.err.ytfail": "Die YouTube-Suche hat gerade nicht funktioniert."
+  "music.err.ytfail": "Die YouTube-Suche hat gerade nicht funktioniert.",
+  "music.err.ytbot": "YouTube verlangt für diese Verbindung gerade eine Anmelde-Prüfung. Später erneut versuchen oder den YouTube-Modus ausschalten."
 }

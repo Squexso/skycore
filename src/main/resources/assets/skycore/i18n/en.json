@@ -1464,5 +1464,6 @@
   "music.yt_installing": "Getting yt-dlp, one moment...",
   "music.err.ytinstall": "yt-dlp could not be set up. Check your connection, or install yt-dlp yourself.",
   "music.err.yt": "This song could not be fetched from YouTube.",
-  "music.err.ytfail": "The YouTube search did not work right now."
+  "music.err.ytfail": "The YouTube search did not work right now.",
+  "music.err.ytbot": "YouTube is asking this connection for a sign-in check. Try again later or switch YouTube mode off."
 }
