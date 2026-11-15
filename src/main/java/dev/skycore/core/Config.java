@@ -27,6 +27,8 @@ public class Config {
     public double hotmCommissionBoost = 1.0;
     /** HOTM XP bonuses (percent) read from shard attributes: only for commissions, and for all HOTM XP. */
     public double hotmShardCommissionPct = 0, hotmShardGeneralPct = 0;
+    /** True once hotmCommissionBoost was measured from exact reads; a shard guess then no longer overwrites it. */
+    public boolean hotmBoostLearned = false;
 
     public WindowState window = new WindowState();
     public ThemeSettings theme = new ThemeSettings();

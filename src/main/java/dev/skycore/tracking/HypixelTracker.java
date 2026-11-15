@@ -92,8 +92,9 @@ public final class HypixelTracker {
             double ratio = (hotmTotal(level, current) - commBaseTotal) / commPredicted;
             if (ratio >= 1.0 && ratio <= 1.5) {
                 double r = Math.round(ratio * 1000) / 1000.0;
-                if (Math.abs(r - Skycore.config().hotmCommissionBoost) > 0.0005) {
+                if (!Skycore.config().hotmBoostLearned || Math.abs(r - Skycore.config().hotmCommissionBoost) > 0.0005) {
                     Skycore.config().hotmCommissionBoost = r;
+                    Skycore.config().hotmBoostLearned = true;
                     Skycore.saveConfig();
                     Skycore.LOG.info("SKYCORE: HOTM commission boost learned: x{}", r);
                 }
@@ -1001,14 +1002,19 @@ public final class HypixelTracker {
         double[] shard = MenuParser.shardHotmBonus(items); // shards say it themselves: "Gain +10% more Heart of the Mountain Exp"
         if (shard[0] >= 0 || shard[1] >= 0) {
             var cfg = Skycore.config();
-            if (shard[0] >= 0) cfg.hotmShardCommissionPct = shard[0];
-            if (shard[1] >= 0) cfg.hotmShardGeneralPct = shard[1];
-            double boost = (1 + cfg.hotmShardCommissionPct / 100) * (1 + cfg.hotmShardGeneralPct / 100);
-            if (Math.abs(boost - cfg.hotmCommissionBoost) > 0.0005) {
+            double c = shard[0] >= 0 ? shard[0] : cfg.hotmShardCommissionPct, g = shard[1] >= 0 ? shard[1] : cfg.hotmShardGeneralPct;
+            if (c != cfg.hotmShardCommissionPct || g != cfg.hotmShardGeneralPct) { // the shards changed: what was learned no longer holds
+                cfg.hotmShardCommissionPct = c;
+                cfg.hotmShardGeneralPct = g;
+                cfg.hotmBoostLearned = false;
+            }
+            // Only a first guess (the bonuses do not simply stack: with both at 10 % the exact reads showed x1.10). A measured value wins.
+            double boost = 1 + Math.max(c, g) / 100;
+            if (!cfg.hotmBoostLearned && Math.abs(boost - cfg.hotmCommissionBoost) > 0.0005) {
                 cfg.hotmCommissionBoost = boost;
                 Skycore.saveConfig();
-                Skycore.LOG.info("SKYCORE: HOTM commission boost read from shards: x{}", boost);
-            }
+                Skycore.LOG.info("SKYCORE: HOTM commission boost guessed from shards: x{}", boost);
+            } else if (cfg.hotmShardCommissionPct != c || cfg.hotmShardGeneralPct != g) Skycore.saveConfig();
         }
         List<ParsedEvent> events = MenuParser.parse(StringUtil.stripColor(screen.getTitle().getString()), items);
         if (events.isEmpty()) return;
