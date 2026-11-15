@@ -225,7 +225,7 @@ public final class Player {
         synchronized (lock) { if (g != gen) return; }
         Skycore.LOG.warn("Music: could not open '{}': {}", t.title, detail);
         // no internet at all, or just this song? (a dead link is skipped, a missing connection is not)
-        problem(g, streamKey(), detail);
+        problem(g, detail != null && detail.contains(YtDlp.BOT) ? "music.err.ytbot" : streamKey(), detail);
     }
 
     private void onBroke(String detail) {
@@ -252,7 +252,7 @@ public final class Player {
         }
         if (again) { start(t, true); return; }
         errorSink.accept(key);
-        if ("music.err.offline".equals(key) || "music.err.engine".equals(key) || fails >= MAX_FAILS) {
+        if ("music.err.offline".equals(key) || "music.err.engine".equals(key) || "music.err.ytbot".equals(key) || fails >= MAX_FAILS) {
             stop();
             synchronized (lock) { errorKey = key; }
         } else advance(true);

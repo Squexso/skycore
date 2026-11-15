@@ -191,7 +191,7 @@ public final class YtDlp {
         try {
             out = resolve(vid);
         } catch (MusicException first) {
-            if (!selfUpdate()) throw first; // YouTube changes often; a newer yt-dlp usually fixes it
+            if ("music.err.ytbot".equals(first.key) || !selfUpdate()) throw first; // YouTube changes often; a newer yt-dlp usually fixes it (not a bot check)
             out = resolve(vid);
         }
         urls.put(vid, out.get(0));
@@ -213,18 +213,36 @@ public final class YtDlp {
         try { run(List.of("-U"), 90); return true; } catch (MusicException e) { return false; }
     }
 
+    /** The message of the exception that means "YouTube wants a sign-in check from this connection". */
+    public static final String BOT = "youtube bot check";
+
+    /** True if yt-dlp's error output says YouTube blocked the request as automated. */
+    static boolean botCheck(String stderr) {
+        return stderr != null && stderr.toLowerCase(Locale.ROOT).contains("confirm you");
+    }
+
     private static List<String> run(List<String> args, int timeoutSec) throws MusicException {
         Path tool = exe != null ? exe : locate();
         if (tool == null) throw new MusicException("music.err.yt", "yt-dlp not available");
         List<String> cmd = new ArrayList<>();
         cmd.add(tool.toString());
         cmd.addAll(List.of("--no-warnings", "--ignore-config", "--encoding", "utf-8"));
+        Path cookies = Storage.dir().resolve("music").resolve("cookies.txt"); // optional, supplied by the player; never created or read by SKYCORE itself
+        if (Files.isRegularFile(cookies)) cmd.addAll(List.of("--cookies", cookies.toString()));
         cmd.addAll(args);
         Process p = null;
         try {
-            p = new ProcessBuilder(cmd).redirectError(ProcessBuilder.Redirect.DISCARD).start();
+            p = new ProcessBuilder(cmd).start();
             p.getOutputStream().close();
             final Process proc = p;
+            final StringBuilder err = new StringBuilder();
+            Thread errReader = new Thread(() -> {
+                try (BufferedReader r = new BufferedReader(new InputStreamReader(proc.getErrorStream(), StandardCharsets.UTF_8))) {
+                    for (String l; (l = r.readLine()) != null; ) synchronized (err) { if (err.length() < 4000) err.append(l).append('\n'); }
+                } catch (IOException ignored) {}
+            }, "SkyCore-Music-Yt-Err");
+            errReader.setDaemon(true);
+            errReader.start();
             List<String> lines = new ArrayList<>();
             Thread reader = new Thread(() -> {
                 try (BufferedReader r = new BufferedReader(new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8))) {
@@ -235,7 +253,13 @@ public final class YtDlp {
             reader.start();
             if (!p.waitFor(timeoutSec, TimeUnit.SECONDS)) { p.destroyForcibly(); throw new MusicException("music.err.yt", "timeout"); }
             reader.join(2000);
-            if (p.exitValue() != 0) throw new MusicException("music.err.yt", "exit " + p.exitValue());
+            if (p.exitValue() != 0) {
+                errReader.join(1000);
+                String e;
+                synchronized (err) { e = err.toString(); }
+                if (botCheck(e)) throw new MusicException("music.err.ytbot", BOT);
+                throw new MusicException("music.err.yt", "exit " + p.exitValue());
+            }
             synchronized (lines) { return new ArrayList<>(lines); }
         } catch (IOException e) {
             throw new MusicException("music.err.yt", e.toString());
