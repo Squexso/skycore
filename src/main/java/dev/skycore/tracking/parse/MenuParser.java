@@ -35,7 +35,41 @@ public final class MenuParser {
     private static final Pattern COMPLETED = Pattern.compile("(?i)^(?:Times )?Complet(?:ed|ions):?\\s*([\\d,]+)$");
     private static final Pattern KUUDRA_TIER_NAME = Pattern.compile("^(?:Kuudra )?(Basic|Hot|Burning|Fiery|Infernal)(?: Tier)?$");
 
+    // Commissions menu (King): "Commission #2" items; a finished one shows "COMPLETED", rewards are lines like "- +440 HOTM Exp"
+    private static final Pattern COMMISSION_NAME = Pattern.compile("^Commission #\\d+\\b.*");
+    private static final Pattern HOTM_EXP = Pattern.compile("^[\\s\\-\u2013\u2014]*\\+([\\d,.]+[kKmM]?)\\s+HOTM Exp");
+
     private MenuParser() {}
+
+    /** One commission slot: finished or not, and the HOTM XP it pays (daily bonus included). */
+    public record Commission(boolean done, double hotmXp) {}
+
+    /** Null when the item is not a commission. */
+    public static Commission commission(String name, List<String> lore) {
+        if (name == null || lore == null || !COMMISSION_NAME.matcher(name.trim()).matches()) return null;
+        boolean done = false;
+        double xp = 0;
+        for (String raw : lore) {
+            String l = raw.trim();
+            if (l.equals("COMPLETED")) done = true;
+            Matcher m = HOTM_EXP.matcher(l);
+            if (m.find()) xp += MessageParser.num(m.group(1));
+        }
+        return new Commission(done, xp);
+    }
+
+    /**
+     * HOTM XP that was claimed between two looks at the Commissions menu: a slot that was finished before and now holds
+     * a commission that is not (the King replaced it with a new one). A slot that is simply empty or missing counts as unknown.
+     */
+    public static double claimedHotmXp(java.util.Map<Integer, Commission> before, java.util.Map<Integer, Commission> now) {
+        double sum = 0;
+        for (var e : before.entrySet()) {
+            Commission was = e.getValue(), is = now.get(e.getKey());
+            if (was.done() && is != null && !is.done()) sum += was.hotmXp();
+        }
+        return sum;
+    }
 
     public record Item(String name, List<String> lore) {}
 
