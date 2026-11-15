@@ -25,6 +25,8 @@ public class Config {
     public int lastPage = 0;
     /** Learned factor between the HOTM XP a commission shows and what is really paid (shards, perks). 1 = none. */
     public double hotmCommissionBoost = 1.0;
+    /** HOTM XP bonuses (percent) read from shard attributes: only for commissions, and for all HOTM XP. */
+    public double hotmShardCommissionPct = 0, hotmShardGeneralPct = 0;
 
     public WindowState window = new WindowState();
     public ThemeSettings theme = new ThemeSettings();

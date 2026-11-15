@@ -253,17 +253,32 @@ public final class MenuParser {
         return n;
     }
 
-    private static final Pattern SHARD_HOTM = Pattern.compile("Commissions grant \\+([\\d.]+)%\\s+more\\s+HOTM\\s+Exp", Pattern.CASE_INSENSITIVE);
+    private static final Pattern SHARD_COMMISSION = Pattern.compile("Commissions grant \\+([\\d.]+)%\\s+more\\s+(?:HOTM|Heart of the Mountain)\\s+Exp", Pattern.CASE_INSENSITIVE);
+    private static final Pattern SHARD_GENERAL = Pattern.compile("Gain \\+([\\d.]+)%\\s+more\\s+(?:HOTM|Heart of the Mountain)\\s+Exp", Pattern.CASE_INSENSITIVE);
 
-    /** The commission HOTM bonus a shard attribute shows in a Hunting Box or Attribute menu, as a factor like 1.1; 1.0 if none is shown. */
-    public static double shardHotmBoost(List<Item> items) {
-        double best = 0;
+    /**
+     * The HOTM XP bonuses shard attributes show in a Hunting Box or Attribute menu, in percent: {commissions only, everything}.
+     * -1 means no such attribute is shown in this menu (so the old value stays); an attribute switched off ("Enabled: No") counts as 0.
+     */
+    public static double[] shardHotmBonus(List<Item> items) {
+        double commission = -1, general = -1;
         for (Item it : items) {
-            Matcher m = SHARD_HOTM.matcher(String.join(" ", it.lore()));
-            if (m.find()) {
-                try { best = Math.max(best, Double.parseDouble(m.group(1))); } catch (NumberFormatException ignored) { }
-            }
+            String text = String.join(" ", it.lore());
+            boolean off = text.contains("Enabled: No");
+            Matcher c = SHARD_COMMISSION.matcher(text);
+            if (c.find()) commission = Math.max(commission, off ? 0 : pct(c.group(1)));
+            Matcher g = SHARD_GENERAL.matcher(text);
+            if (g.find()) general = Math.max(general, off ? 0 : pct(g.group(1)));
         }
-        return best > 0 && best <= 100 ? 1.0 + best / 100.0 : 1.0;
+        return new double[]{commission, general};
+    }
+
+    private static double pct(String s) {
+        try {
+            double v = Double.parseDouble(s);
+            return v >= 0 && v <= 100 ? v : 0;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }
