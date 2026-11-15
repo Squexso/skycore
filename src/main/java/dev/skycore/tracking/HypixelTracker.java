@@ -793,7 +793,8 @@ public final class HypixelTracker {
     /** Called every client tick. Each source has its own cadence; nothing heavy runs every tick. */
     public static void tick(Minecraft mc) {
         watchPatterns();
-        if (mc.player == null || mc.level == null) { if (onSkyBlock || runActive) reset(); return; }
+        if (mc.player == null || mc.level == null) { HypixelModBridge.clear(); if (onSkyBlock || runActive) reset(); return; }
+        HypixelModBridge.tick();
         if (++healthTimer >= 20) { healthTimer = 0; updateAvailability(mc); }
         if (!enabled()) return;
         if (++sidebarTimer >= 20) { sidebarTimer = 0; guarded(Source.SIDEBAR, () -> readSidebar(mc)); }
@@ -805,7 +806,6 @@ public final class HypixelTracker {
             if (commissionsLeftAt == 0) commissionsLeftAt = t;
             else if (t - commissionsLeftAt > 20_000) { prevCommissions = Map.of(); commissionsLeftAt = 0; } // really closed
         }
-        HypixelApi.tick(onSkyBlock && Progress.isIdentified());
         if (++snapshotTimer >= 12_000) { snapshotTimer = 0; if (onSkyBlock && Progress.isIdentified()) History.snapshot(Progress.profileName(), Progress.real()); }
         finishSuspended(false);
         handleQuest(slayer.tick(System.currentTimeMillis()), "timeout");
@@ -858,16 +858,17 @@ public final class HypixelTracker {
     private static void readSidebar(Minecraft mc) {
         Scoreboard sb = mc.level.getScoreboard();
         Objective obj = sb.getDisplayObjective(DisplaySlot.SIDEBAR);
-        if (obj == null) { onSkyBlock = false; Health.available(Source.SIDEBAR, false, "health.note.no_sidebar"); return; }
+        if (obj == null) { onSkyBlock = HypixelModBridge.onSkyBlock(); Health.available(Source.SIDEBAR, false, "health.note.no_sidebar"); return; }
         List<String> lines = new ArrayList<>();
         for (PlayerTeam team : sb.getPlayerTeams()) lines.add(StringUtil.stripColor(team.getPlayerPrefix().getString() + team.getPlayerSuffix().getString()));
         PanelParser.Sidebar s = PanelParser.sidebar(StringUtil.stripColor(obj.getDisplayName().getString()), lines, mc.player.getGameProfile().name());
-        onSkyBlock = s.skyblock();
+        onSkyBlock = s.skyblock() || HypixelModBridge.onSkyBlock(); // the Mod API (if installed) backs up the sidebar reading
         if (!onSkyBlock) { floor = null; area = ""; Health.available(Source.SIDEBAR, false, "health.note.not_skyblock"); return; }
         Health.success(Source.SIDEBAR);
         String prevFloor = floor;
         floor = s.floor();
         if (s.area() != null) area = s.area();
+        else if (area.isEmpty() && HypixelModBridge.area() != null) area = HypixelModBridge.area();
         // the tier stays known after the boss dies (the quest line disappears before the level message arrives)
         slayerVisible = s.slayerTier() != null;
         if (s.slayerTier() != null) slayerTier = s.slayerTier();
