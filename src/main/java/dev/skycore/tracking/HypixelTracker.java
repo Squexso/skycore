@@ -68,6 +68,8 @@ public final class HypixelTracker {
     // panels
     private static boolean onSkyBlock;
     private static String area = "", floor, slayerTier, kuudraTier, sidebarClass;
+    /** Commissions seen at the last look at the King's menu, by slot: a finished one that gets replaced was claimed. */
+    private static Map<Integer, MenuParser.Commission> prevCommissions = Map.of();
     private static int sidebarTimer, tabTimer = 60, menuTimer, menuHash, snapshotTimer, healthTimer;
 
     // dungeon run state
@@ -764,6 +766,7 @@ public final class HypixelTracker {
         if (++sidebarTimer >= 20) { sidebarTimer = 0; guarded(Source.SIDEBAR, () -> readSidebar(mc)); }
         if (onSkyBlock && ++tabTimer >= 100) { tabTimer = 0; guarded(Source.TAB, () -> readTab(mc)); }
         if (onSkyBlock && mc.screen instanceof AbstractContainerScreen<?> cs && ++menuTimer >= 10) { menuTimer = 0; guarded(Source.MENU, () -> scanMenu(cs)); }
+        if (!prevCommissions.isEmpty() && !(mc.screen instanceof AbstractContainerScreen<?>)) prevCommissions = Map.of(); // menu closed
         if (++snapshotTimer >= 12_000) { snapshotTimer = 0; if (onSkyBlock && Progress.isIdentified()) History.snapshot(Progress.profileName(), Progress.real()); }
         finishSuspended(false);
         handleQuest(slayer.tick(System.currentTimeMillis()), "timeout");
@@ -919,6 +922,8 @@ public final class HypixelTracker {
 
     private static void scanMenu(AbstractContainerScreen<?> screen) {
         List<MenuParser.Item> items = new ArrayList<>();
+        boolean commissionsMenu = StringUtil.stripColor(screen.getTitle().getString()).trim().equalsIgnoreCase("Commissions");
+        Map<Integer, MenuParser.Commission> comm = new HashMap<>();
         int hash = screen.getTitle().getString().hashCode();
         for (Slot slot : screen.getMenu().slots) {
             ItemStack st = slot.getItem();
@@ -930,9 +935,18 @@ public final class HypixelTracker {
             String name = StringUtil.stripColor(st.getHoverName().getString());
             hash = 31 * hash + name.hashCode() * 17 + lines.hashCode();
             items.add(new MenuParser.Item(name, lines));
+            if (commissionsMenu) { MenuParser.Commission c = MenuParser.commission(name, lines); if (c != null) comm.put(slot.index, c); }
         }
         if (hash == menuHash || items.isEmpty()) return; // unchanged since last scan
         menuHash = hash;
+        if (commissionsMenu) {
+            double claimed = MenuParser.claimedHotmXp(prevCommissions, comm);
+            prevCommissions = comm;
+            if (claimed > 0 && Progress.isIdentified() && Skycore.config().tracks("mining")) {
+                Progress.gain(StatDef.get("hotm"), claimed); // verified base from /hotm plus the claimed XP, shown as event-tracked
+                log("commission_claim", "hotm", claimed, "menu", "commission_menu", 0.9, true);
+            }
+        }
         Health.activity(Source.MENU);
         MenuDump.write(StringUtil.stripColor(screen.getTitle().getString()), items);
         List<ParsedEvent> events = MenuParser.parse(StringUtil.stripColor(screen.getTitle().getString()), items);
