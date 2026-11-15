@@ -39,6 +39,15 @@ public final class MenuParser {
     private static final Pattern COMMISSION_NAME = Pattern.compile("^Commission #\\d+\\b.*");
     private static final Pattern HOTM_EXP = Pattern.compile("\\+([\\d,.]+[kKmM]?)\\s+HOTM Exp");
 
+    private static final Pattern CHAT_HOTM = Pattern.compile("^\\s*\\+([\\d,.]+[kKmM]?)\\s+HOTM Exp\\s*$");
+
+    /** HOTM XP of a chat reward line like "    +800 HOTM Exp" (the amount really paid); 0 if the line is something else. */
+    public static double chatHotmReward(String line) {
+        if (line == null) return 0;
+        Matcher m = CHAT_HOTM.matcher(line);
+        return m.matches() ? MessageParser.num(m.group(1)) : 0;
+    }
+
     private MenuParser() {}
 
     /** One commission slot: finished or not, and the HOTM XP it pays (daily bonus included). */
