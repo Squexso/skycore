@@ -37,7 +37,7 @@ public final class MenuParser {
 
     // Commissions menu (King): "Commission #2" items; a finished one shows "COMPLETED", rewards are lines like "- +440 HOTM Exp"
     private static final Pattern COMMISSION_NAME = Pattern.compile("^Commission #\\d+\\b.*");
-    private static final Pattern HOTM_EXP = Pattern.compile("^[\\s\\-\u2013\u2014]*\\+([\\d,.]+[kKmM]?)\\s+HOTM Exp");
+    private static final Pattern HOTM_EXP = Pattern.compile("\\+([\\d,.]+[kKmM]?)\\s+HOTM Exp");
 
     private MenuParser() {}
 
@@ -51,7 +51,7 @@ public final class MenuParser {
         double xp = 0;
         for (String raw : lore) {
             String l = raw.trim();
-            if (l.equals("COMPLETED")) done = true;
+            if (l.equalsIgnoreCase("COMPLETED") || l.toUpperCase().contains("COMPLETED") && l.length() < 20) done = true;
             Matcher m = HOTM_EXP.matcher(l);
             if (m.find()) xp += MessageParser.num(m.group(1));
         }
