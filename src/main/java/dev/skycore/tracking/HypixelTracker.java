@@ -998,6 +998,12 @@ public final class HypixelTracker {
         }
         Health.activity(Source.MENU);
         MenuDump.write(StringUtil.stripColor(screen.getTitle().getString()), items);
+        double shardBoost = MenuParser.shardHotmBoost(items); // a shard says it itself: "Commissions grant +10% more HOTM Exp"
+        if (shardBoost > 1.0 && Math.abs(shardBoost - Skycore.config().hotmCommissionBoost) > 0.0005) {
+            Skycore.config().hotmCommissionBoost = shardBoost;
+            Skycore.saveConfig();
+            Skycore.LOG.info("SKYCORE: HOTM commission boost read from a shard: x{}", shardBoost);
+        }
         List<ParsedEvent> events = MenuParser.parse(StringUtil.stripColor(screen.getTitle().getString()), items);
         if (events.isEmpty()) return;
         if (!Progress.isIdentified()) {
