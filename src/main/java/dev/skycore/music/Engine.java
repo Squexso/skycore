@@ -50,6 +50,7 @@ final class Engine {
         this.events = events;
         manager.getConfiguration().setOutputFormat(new Pcm16AudioDataFormat(2, 48000, 960, false)); // little endian, what OpenAL wants
         manager.setFrameBufferDuration(1500);
+        manager.setPlayerCleanupThreshold(TimeUnit.HOURS.toMillis(12)); // default 60 s: a longer pause ended the song silently
         manager.registerSourceManager(new HttpAudioSourceManager());
         manager.registerSourceManager(new LocalAudioSourceManager());
         player = manager.createPlayer();
@@ -57,6 +58,7 @@ final class Engine {
             @Override public void onTrackEnd(AudioPlayer p, AudioTrack t, AudioTrackEndReason reason) {
                 if (reason == AudioTrackEndReason.FINISHED) events.ended();
                 else if (reason == AudioTrackEndReason.LOAD_FAILED) events.broke("load failed");
+                else if (reason == AudioTrackEndReason.CLEANUP) events.broke("player cleaned up");
             }
             @Override public void onTrackException(AudioPlayer p, AudioTrack t, FriendlyException e) { events.broke(String.valueOf(e.getMessage())); }
             @Override public void onTrackStuck(AudioPlayer p, AudioTrack t, long thresholdMs) { events.broke("stalled " + thresholdMs + " ms"); }
@@ -133,7 +135,7 @@ final class Engine {
                     sink.setGain(volume * volume * masterVolume());
                     if (flushRequested) { flushRequested = false; sink.flush(); filled = 0; }
                     sink.setPaused(paused);
-                    if (paused) { sleep(40); continue; }
+                    if (paused) { player.provide(); sleep(40); continue; } // returns nothing while paused, but marks the player as in use
                     AudioFrame f = player.provide(25, TimeUnit.MILLISECONDS);
                     if (f == null) { sink.keepAlive(); continue; }
                     byte[] d = f.getData();
