@@ -70,6 +70,8 @@ public final class HypixelTracker {
     private static String area = "", floor, slayerTier, kuudraTier, sidebarClass;
     /** Commissions seen at the last look at the King's menu, by slot: a finished one that gets replaced was claimed. */
     private static Map<Integer, MenuParser.Commission> prevCommissions = Map.of();
+    /** When the last container screen closed; the King's menu is reopened by the server on a claim, so the memory outlives a short gap. */
+    private static long commissionsLeftAt;
     private static int sidebarTimer, tabTimer = 60, menuTimer, menuHash, snapshotTimer, healthTimer;
 
     // dungeon run state
@@ -766,7 +768,12 @@ public final class HypixelTracker {
         if (++sidebarTimer >= 20) { sidebarTimer = 0; guarded(Source.SIDEBAR, () -> readSidebar(mc)); }
         if (onSkyBlock && ++tabTimer >= 100) { tabTimer = 0; guarded(Source.TAB, () -> readTab(mc)); }
         if (onSkyBlock && mc.gui.screen() instanceof AbstractContainerScreen<?> cs && ++menuTimer >= 10) { menuTimer = 0; guarded(Source.MENU, () -> scanMenu(cs)); }
-        if (!prevCommissions.isEmpty() && !(mc.gui.screen() instanceof AbstractContainerScreen<?>)) prevCommissions = Map.of(); // menu closed
+        if (mc.gui.screen() instanceof AbstractContainerScreen<?>) commissionsLeftAt = 0;
+        else if (!prevCommissions.isEmpty()) {
+            long t = System.currentTimeMillis();
+            if (commissionsLeftAt == 0) commissionsLeftAt = t;
+            else if (t - commissionsLeftAt > 20_000) { prevCommissions = Map.of(); commissionsLeftAt = 0; } // really closed
+        }
         if (++snapshotTimer >= 12_000) { snapshotTimer = 0; if (onSkyBlock && Progress.isIdentified()) History.snapshot(Progress.profileName(), Progress.real()); }
         finishSuspended(false);
         handleQuest(slayer.tick(System.currentTimeMillis()), "timeout");
@@ -945,6 +952,7 @@ public final class HypixelTracker {
             if (claimed > 0 && Progress.isIdentified() && Skycore.config().tracks("mining")) {
                 Progress.gain(StatDef.get("hotm"), claimed); // verified base from /hotm plus the claimed XP, shown as event-tracked
                 log("commission_claim", "hotm", claimed, "menu", "commission_menu", 0.9, true);
+                Skycore.LOG.info("SKYCORE: commission claimed, +{} HOTM XP", (long) claimed);
             }
         }
         Health.activity(Source.MENU);
