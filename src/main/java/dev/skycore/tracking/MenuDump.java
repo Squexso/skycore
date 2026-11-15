@@ -24,6 +24,7 @@ final class MenuDump {
         if (t.contains("heart of the mountain")) return "menu-dump-hotm.txt";
         if (t.contains("heart of the forest")) return "menu-dump-hotf.txt";
         if (t.equals("commissions")) return "menu-dump-commissions.txt";
+        if (t.contains("shard") || t.contains("hunting")) return "menu-dump-shards.txt";
         return null;
     }
 
@@ -38,7 +39,7 @@ final class MenuDump {
         }
         String text = sb.toString();
         Path path = Storage.dir().resolve(file);
-        boolean append = file.equals("menu-dump-commissions.txt"); // every change is kept, to compare before and after a claim
+        boolean append = file.equals("menu-dump-commissions.txt") || file.equals("menu-dump-shards.txt"); // every change is kept (several shard menus share one file)
         Storage.async(() -> {
             try {
                 if (append) {
