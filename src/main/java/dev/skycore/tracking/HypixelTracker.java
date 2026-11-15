@@ -72,6 +72,36 @@ public final class HypixelTracker {
     private static Map<Integer, MenuParser.Commission> prevCommissions = Map.of();
     /** When the last container screen closed; the King's menu is reopened by the server on a claim, so the memory outlives a short gap. */
     private static long commissionsLeftAt;
+    /** HOTM XP the commissions claimed since the last exact read promised, and the total XP the stat had before the first of them. */
+    private static double commPredicted, commBaseTotal = -1;
+
+    /** Total HOTM XP from tier 1 up to {@code xp} into {@code level}. */
+    static double hotmTotal(int level, double xp) {
+        double t = xp;
+        for (int l = 1; l < level; l++) t += Math.max(0, XpTables.need(XpTables.HOTM, l));
+        return t;
+    }
+
+    /**
+     * An exact HOTM read arrived. If commissions were claimed since the last one, the difference to what the menus promised
+     * is the boost (a shard, a perk): it is learned and applied to the next claims. Anything outside 1.0 to 1.5 is not a boost
+     * (other XP sources in between) and is ignored.
+     */
+    private static void calibrateHotm(int level, double current) {
+        if (commPredicted >= 400 && commBaseTotal >= 0 && current >= 0) {
+            double ratio = (hotmTotal(level, current) - commBaseTotal) / commPredicted;
+            if (ratio >= 1.0 && ratio <= 1.5) {
+                double r = Math.round(ratio * 1000) / 1000.0;
+                if (Math.abs(r - Skycore.config().hotmCommissionBoost) > 0.0005) {
+                    Skycore.config().hotmCommissionBoost = r;
+                    Skycore.saveConfig();
+                    Skycore.LOG.info("SKYCORE: HOTM commission boost learned: x{}", r);
+                }
+            }
+        }
+        commPredicted = 0;
+        commBaseTotal = -1;
+    }
     private static int sidebarTimer, tabTimer = 60, menuTimer, menuHash, snapshotTimer, healthTimer;
 
     // dungeon run state
@@ -754,6 +784,7 @@ public final class HypixelTracker {
             return;
         }
         double need = m.need() > 0 ? m.need() : XpTables.need(def.table(), level);
+        if (def.id().equals("hotm")) calibrateHotm(level, m.current());
         if (m.current() >= 0) Progress.observeMenu(def, level, m.current(), need);
         else if (m.percent() >= 0) Progress.observeApprox(def, level, m.percent(), "menu");
     }
@@ -953,7 +984,11 @@ public final class HypixelTracker {
             prevCommissions = merged;
             Skycore.LOG.info("SKYCORE commissions menu: {} (claimed {})", comm, claimed);
             if (claimed > 0 && Progress.isIdentified() && Skycore.config().tracks("mining")) {
-                Progress.gain(StatDef.get("hotm"), claimed); // verified base from /hotm plus the claimed XP, shown as event-tracked
+                var hs = Progress.real().stat("hotm");
+                if (commPredicted == 0 && hs.level >= 0 && hs.need > 0) commBaseTotal = hotmTotal(hs.level, hs.xp);
+                commPredicted += claimed;
+                double paid = claimed * Math.max(1.0, Skycore.config().hotmCommissionBoost);
+                Progress.gain(StatDef.get("hotm"), paid); // verified base from /hotm plus the claimed XP (with the learned boost), event-tracked
                 log("commission_claim", "hotm", claimed, "menu", "commission_menu", 0.9, true);
                 Skycore.LOG.info("SKYCORE: commission claimed, +{} HOTM XP", (long) claimed);
             }

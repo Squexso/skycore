@@ -23,6 +23,8 @@ public class Config {
     /** Automatic config/data backups kept in config/skycore/backups (0 = off). */
     public int backupsToKeep = 5;
     public int lastPage = 0;
+    /** Learned factor between the HOTM XP a commission shows and what is really paid (shards, perks). 1 = none. */
+    public double hotmCommissionBoost = 1.0;
 
     public WindowState window = new WindowState();
     public ThemeSettings theme = new ThemeSettings();
