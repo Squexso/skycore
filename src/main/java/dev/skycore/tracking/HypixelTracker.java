@@ -293,6 +293,11 @@ public final class HypixelTracker {
             if (!overlay && dev.skycore.data.SideXp.isCreatureLine(text)) markActivity();
             if (!overlay) dev.skycore.data.SideXp.onChat(text, System.currentTimeMillis());
             if (!overlay) dev.skycore.data.Reputation.onChat(text, System.currentTimeMillis());
+            double hotmReward = overlay ? 0 : MenuParser.chatHotmReward(text);
+            if (hotmReward > 0 && Progress.isIdentified() && Skycore.config().tracks("mining")) {
+                Progress.gain(StatDef.get("hotm"), hotmReward); // a reward line in chat is the amount already paid, boost included
+                Skycore.LOG.info("SKYCORE: chat reward, +{} HOTM XP", (long) hotmReward);
+            }
             var channel = overlay ? MessageParser.Channel.ACTION_BAR : MessageParser.Channel.CHAT;
             List<MessageParser.Recognized> found = parser.recognize(text, channel);
             String source = overlay ? "action_bar" : "chat";
