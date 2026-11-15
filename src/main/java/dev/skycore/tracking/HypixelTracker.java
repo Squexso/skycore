@@ -288,6 +288,7 @@ public final class HypixelTracker {
         try {
             Health.activity(src);
             String text = StringUtil.stripColor(message.getString());
+            MessageDump.write(text, overlay);
             if (!overlay && dev.skycore.data.SideXp.isCreatureLine(text)) markActivity();
             if (!overlay) dev.skycore.data.SideXp.onChat(text, System.currentTimeMillis());
             if (!overlay) dev.skycore.data.Reputation.onChat(text, System.currentTimeMillis());
