@@ -1465,5 +1465,8 @@
   "music.err.ytinstall": "yt-dlp konnte nicht eingerichtet werden. Prüfe die Verbindung oder installiere yt-dlp selbst.",
   "music.err.yt": "Dieser Song konnte nicht von YouTube geholt werden.",
   "music.err.ytfail": "Die YouTube-Suche hat gerade nicht funktioniert.",
-  "music.err.ytbot": "YouTube verlangt für diese Verbindung gerade eine Anmelde-Prüfung. Später erneut versuchen oder den YouTube-Modus ausschalten."
+  "music.err.ytbot": "YouTube verlangt für diese Verbindung gerade eine Anmelde-Prüfung. Später erneut versuchen oder den YouTube-Modus ausschalten.",
+  "hud.widget.m_boss": "Slayer-Boss-Leben",
+  "hud.boss.mobs": "Mobs",
+  "hud.boss.hp": "HP"
 }

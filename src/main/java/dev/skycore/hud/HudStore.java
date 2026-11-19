@@ -13,7 +13,7 @@ import java.util.Map;
 
 /** HUD layouts: multiple named profiles, persisted to hud.json, shareable as a clipboard string. */
 public final class HudStore {
-    public static final String[] WIDGETS = {"catacombs", "skill", "slayer", "session", "goals", "reputation", "hotm", "music", "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz"};
+    public static final String[] WIDGETS = {"catacombs", "skill", "slayer", "session", "goals", "reputation", "hotm", "music", "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz", "m_boss"};
     private static final String EXPORT_PREFIX = "SKYCORE-HUD:";
 
     public static class WidgetState {
@@ -129,6 +129,12 @@ public final class HudStore {
             m.visibility = "always";
             l.add(m);
         }
+        WidgetState boss = make("m_boss", 0.46f, 0.25f, true); // slayer: last mobs to kill, then the boss's health, as big numbers
+        boss.opacity = 1f;
+        boss.visibility = "auto"; // only during a slayer quest
+        boss.scale = 2.5f;
+        boss.lines.put("labels", Boolean.FALSE);
+        l.add(boss);
         return l;
     }
 
