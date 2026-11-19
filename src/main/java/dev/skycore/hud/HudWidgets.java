@@ -255,7 +255,7 @@ public final class HudWidgets {
             case "m_ram" -> { label = "RAM"; int v = Meters.memoryPercent(); value = v + "%"; cls = Meters.memoryClass(v); }
             case "m_boss" -> { // slayer: the last few mobs as a big count, then the boss's health
                 var v = dev.skycore.tracking.SlayerBoss.view(System.currentTimeMillis());
-                boolean preview = Progress.isSample() || mc.screen instanceof dev.skycore.ui.SkycoreScreen || mc.screen instanceof HudEditorScreen;
+                boolean preview = Progress.isSample() || mc.gui.screen() instanceof dev.skycore.ui.SkycoreScreen || mc.gui.screen() instanceof HudEditorScreen;
                 if (v.mode() == dev.skycore.tracking.SlayerBoss.Mode.NONE && preview) v = new dev.skycore.tracking.SlayerBoss.View(dev.skycore.tracking.SlayerBoss.Mode.HP, 0, "7.6M");
                 if (v.mode() == dev.skycore.tracking.SlayerBoss.Mode.NONE) return new Content("", Icon.SPARK, -1, null, new ArrayList<>());
                 if (v.mode() == dev.skycore.tracking.SlayerBoss.Mode.MOBS) { label = Lang.t("hud.boss.mobs"); value = String.valueOf(v.mobs()); cls = 1; }
