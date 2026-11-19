@@ -43,7 +43,7 @@ public final class HudWidgets {
             case "slayer" -> Icon.SLAYER;
             case "session" -> Icon.CLOCK;
             case "music" -> Icon.SOUND;
-            case "reputation", "hotm", "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz" -> Icon.SPARK;
+            case "reputation", "hotm", "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz", "m_boss" -> Icon.SPARK;
             default -> Icon.GOALS;
         };
     }
@@ -59,7 +59,7 @@ public final class HudWidgets {
             case "music" -> new String[]{"music_artist", "music_status"};
             case "hotm" -> new String[]{"hotm_xp", "hotm_left", "hotm_target"};
             case "m_ping" -> new String[]{"labels", "realping"};
-            case "m_fps", "m_tps", "m_ram", "m_xyz" -> new String[]{"labels"};
+            case "m_fps", "m_tps", "m_ram", "m_xyz", "m_boss" -> new String[]{"labels"};
             default -> new String[]{"bars", "eta"};
         };
     }
@@ -153,7 +153,7 @@ public final class HudWidgets {
             case "hotm" -> {
                 return hotm(lines, t);
             }
-            case "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz" -> {
+            case "m_fps", "m_tps", "m_ping", "m_ram", "m_xyz", "m_boss" -> {
                 return meter(id, lines, t);
             }
             case "session" -> {
@@ -253,6 +253,14 @@ public final class HudWidgets {
             case "m_tps" -> { label = "TPS"; double v = Meters.tps(); if (v >= 0) { value = Meters.tpsText(v); cls = Meters.tpsClass(v); } }
             case "m_ping" -> { label = "Ping"; int v = Meters.ping(mc); if (v >= 0) { value = String.valueOf(v); cls = Meters.pingClass(v); } }
             case "m_ram" -> { label = "RAM"; int v = Meters.memoryPercent(); value = v + "%"; cls = Meters.memoryClass(v); }
+            case "m_boss" -> { // slayer: the last few mobs as a big count, then the boss's health
+                var v = dev.skycore.tracking.SlayerBoss.view(System.currentTimeMillis());
+                boolean preview = Progress.isSample() || mc.screen instanceof dev.skycore.ui.SkycoreScreen || mc.screen instanceof HudEditorScreen;
+                if (v.mode() == dev.skycore.tracking.SlayerBoss.Mode.NONE && preview) v = new dev.skycore.tracking.SlayerBoss.View(dev.skycore.tracking.SlayerBoss.Mode.HP, 0, "7.6M");
+                if (v.mode() == dev.skycore.tracking.SlayerBoss.Mode.NONE) return new Content("", Icon.SPARK, -1, null, new ArrayList<>());
+                if (v.mode() == dev.skycore.tracking.SlayerBoss.Mode.MOBS) { label = Lang.t("hud.boss.mobs"); value = String.valueOf(v.mobs()); cls = 1; }
+                else { label = Lang.t("hud.boss.hp"); value = v.hp(); cls = 2; }
+            }
             default -> { label = "XYZ"; if (mc.player != null) value = mc.player.getBlockX() + " " + mc.player.getBlockY() + " " + mc.player.getBlockZ(); }
         }
         List<Row> rows = new ArrayList<>();
@@ -335,7 +343,7 @@ public final class HudWidgets {
         Cached c = CACHE.get(id);
         boolean sample = Progress.isSample();
         String lang = Lang.code();
-        if (c == null || c.version != Progress.version() || now - c.time > 1000 || c.sample != sample || !c.lang.equals(lang)) {
+        if (c == null || c.version != Progress.version() || now - c.time > (id.equals("m_boss") ? 100 : 1000) || c.sample != sample || !c.lang.equals(lang)) {
             c = new Cached(build(id), Progress.version(), now, sample, lang);
             CACHE.put(id, c);
         }
@@ -353,6 +361,7 @@ public final class HudWidgets {
         return switch (id) {
             case "catacombs" -> dev.skycore.tracking.HypixelTracker.inDungeon() || dev.skycore.tracking.HypixelTracker.runActive();
             case "slayer" -> dev.skycore.tracking.HypixelTracker.slayerActive();
+            case "m_boss" -> dev.skycore.tracking.SlayerBoss.view(System.currentTimeMillis()).mode() != dev.skycore.tracking.SlayerBoss.Mode.NONE;
             case "music" -> dev.skycore.music.Music.started() && dev.skycore.music.Music.player().status() != dev.skycore.music.Player.Status.IDLE;
             case "reputation" -> now0() - dev.skycore.data.Reputation.lastGainAt() < 10 * 60_000L;
             case "skill" -> {

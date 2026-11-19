@@ -241,6 +241,7 @@ public final class HypixelTracker {
     public static void reset() {
         handleQuest(slayer.disconnect(System.currentTimeMillis()), "disconnect");
         slayerPhase = null;
+        SlayerBoss.reset();
         if (runActive && System.currentTimeMillis() - lastRunCompletedAt > 60_000)
             suspended = new SuspendedRun(runFloor, runStartedAt, currentClass(), System.currentTimeMillis(), Progress.profileKey());
         runActive = false;
@@ -740,6 +741,11 @@ public final class HypixelTracker {
      * The player's own boss nametag: a boss name ("Voidgloom Seraph IV") counts only if a "Spawned by: &lt;you&gt;" tag
      * floats right next to it – other players' bosses nearby are ignored. Reads names the client already renders.
      */
+    private static boolean bossHudOn() {
+        var w = dev.skycore.hud.HudStore.widget("m_boss");
+        return w != null && w.enabled;
+    }
+
     private static void scanOwnBoss(Minecraft mc) {
         String me = mc.player.getGameProfile().name();
         List<double[]> mine = new ArrayList<>();
@@ -749,12 +755,12 @@ public final class HypixelTracker {
             String n = StringUtil.stripColor(e.getCustomName().getString());
             if (n.startsWith("Spawned by: ")) { if (n.substring(12).trim().equals(me)) mine.add(new double[]{e.getX(), e.getY(), e.getZ()}); continue; }
             java.util.regex.Matcher m = BOSS_TAG.matcher(n);
-            if (m.find()) bosses.add(new Object[]{m.group(1), m.group(2), e.getX(), e.getY(), e.getZ()});
+            if (m.find()) bosses.add(new Object[]{m.group(1), m.group(2), e.getX(), e.getY(), e.getZ(), n});
         }
         for (Object[] b : bosses)
             for (double[] p : mine) {
                 double dx = (double) b[2] - p[0], dy = (double) b[3] - p[1], dz = (double) b[4] - p[2];
-                if (dx * dx + dz * dz <= 2.5 * 2.5 && Math.abs(dy) <= 3) { slayer.ownBoss(System.currentTimeMillis(), (String) b[0], (String) b[1]); return; }
+                if (dx * dx + dz * dz <= 2.5 * 2.5 && Math.abs(dy) <= 3) { slayer.ownBoss(System.currentTimeMillis(), (String) b[0], (String) b[1]); SlayerBoss.tag((String) b[5], System.currentTimeMillis()); return; }
             }
     }
 
@@ -816,7 +822,7 @@ public final class HypixelTracker {
         if (++snapshotTimer >= 12_000) { snapshotTimer = 0; if (onSkyBlock && Progress.isIdentified()) History.snapshot(Progress.profileName(), Progress.real()); }
         finishSuspended(false);
         handleQuest(slayer.tick(System.currentTimeMillis()), "timeout");
-        if (onSkyBlock && "boss".equals(slayerPhase) && slayer.active() && ++nametagTimer >= 20) { nametagTimer = 0; guarded(Source.SLAYER, () -> scanOwnBoss(mc)); }
+        if (onSkyBlock && "boss".equals(slayerPhase) && slayer.active() && ++nametagTimer >= (bossHudOn() ? 4 : 20)) { nametagTimer = 0; guarded(Source.SLAYER, () -> scanOwnBoss(mc)); }
         // honest playtime: AFK time (no movement for 3 min) is not counted
         double x = mc.player.getX(), z = mc.player.getZ();
         float yaw = mc.player.getYRot(), pitch = mc.player.getXRot();
@@ -899,6 +905,7 @@ public final class HypixelTracker {
         }
         if (floor != null && runActive) { runFloor = floor; runFloorsSeen.add(floor); }
         slayerPhase = s.slayerPhase();
+        SlayerBoss.sidebar(lines, s.slayerPhase(), now);
         if (s.slayerBoss() != null) slayer.sidebar(now, s.slayerBoss(), s.slayerTier(), s.slayerPhase());
         handleLate(slayer.takeLate());
         // dungeon lifecycle: leaving without a summary ends the run incomplete
